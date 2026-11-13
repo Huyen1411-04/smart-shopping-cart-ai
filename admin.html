@@ -1,0 +1,2756 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="light">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartCart AI — Admin Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <script src="barcode_scanner_min.js"></script>
+  <style>
+    :root {
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+
+      /* Theme Sáng - Chuẩn POS Bán Lẻ Thực Tế */
+      --bg: #F8FAFC;
+      --surface: #FFFFFF;
+      --surface-hover: #F1F5F9;
+      --surface-alt: #F8FAFC;
+      --border: #E2E8F0;
+      --border-light: #EDF2F7;
+
+      --text-primary: #0F172A;
+      --text-secondary: #475569;
+      --text-muted: #94A3B8;
+
+      --primary: #2563EB;
+      --primary-hover: #1D4ED8;
+      --primary-light: #EFF6FF;
+      --primary-border: #BFDBFE;
+
+      --success: #059669;
+      --success-light: #ECFDF5;
+      --success-border: #A7F3D0;
+
+      --warning: #D97706;
+      --warning-light: #FFFBEB;
+      --warning-border: #FDE68A;
+
+      --danger: #DC2626;
+      --danger-light: #FEF2F2;
+      --danger-border: #FECACA;
+
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.08);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.07);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+    }
+
+    [data-theme="dark"] {
+      --bg: #0B0F17;
+      --surface: #131A26;
+      --surface-hover: #1B2433;
+      --surface-alt: #0F1520;
+      --border: #232D3F;
+      --border-light: #1A2230;
+
+      --text-primary: #F1F5F9;
+      --text-secondary: #94A3B8;
+      --text-muted: #64748B;
+
+      --primary: #3B82F6;
+      --primary-hover: #2563EB;
+      --primary-light: rgba(59, 130, 246, 0.12);
+      --primary-border: rgba(59, 130, 246, 0.3);
+
+      --success: #10B981;
+      --success-light: rgba(16, 185, 129, 0.12);
+      --success-border: rgba(16, 185, 129, 0.25);
+
+      --warning: #F59E0B;
+      --warning-light: rgba(245, 158, 11, 0.12);
+      --warning-border: rgba(245, 158, 11, 0.25);
+
+      --danger: #EF4444;
+      --danger-light: rgba(239, 68, 68, 0.12);
+      --danger-border: rgba(239, 68, 68, 0.25);
+
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+      --shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.3);
+      --shadow-md: 0 4px 8px 0 rgba(0, 0, 0, 0.4);
+      --shadow-lg: 0 12px 20px -3px rgba(0, 0, 0, 0.5);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+
+    /* Layout */
+    .app-container {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 24px 20px 48px;
+    }
+
+    /* Navbar Header */
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 20px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      width: 38px;
+      height: 38px;
+      background: var(--primary);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #FFFFFF;
+    }
+
+    .brand-info h1 {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.3px;
+    }
+
+    .brand-info p {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .status-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 500;
+      background: var(--success-light);
+      color: var(--success);
+      border: 1px solid var(--success-border);
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background-color: currentColor;
+      box-shadow: 0 0 0 2px currentColor;
+      animation: pulse-dot 2s infinite;
+    }
+
+    @keyframes pulse-dot {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.4;
+      }
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #FFFFFF;
+      border-color: var(--primary);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-outline {
+      background: var(--surface);
+      color: var(--text-secondary);
+      border-color: var(--border);
+    }
+
+    .btn-outline:hover {
+      background: var(--surface-hover);
+      color: var(--text-primary);
+      border-color: var(--text-muted);
+    }
+
+    .btn-danger-outline {
+      background: transparent;
+      color: var(--danger);
+      border-color: var(--danger-border);
+    }
+
+    .btn-danger-outline:hover {
+      background: var(--danger-light);
+    }
+
+    .btn-sm {
+      padding: 5px 10px;
+      font-size: 12.5px;
+      border-radius: 6px;
+    }
+
+    .btn-icon-only {
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      border-radius: 8px;
+    }
+
+    /* Help Alert Bar */
+    .help-alert-box {
+      display: none;
+      background: var(--danger-light);
+      border: 1px solid var(--danger-border);
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .help-alert-box.active {
+      display: block;
+    }
+
+    .help-alert-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      color: var(--danger);
+      margin-bottom: 10px;
+      font-size: 14.5px;
+    }
+
+    .help-card-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--surface);
+      border: 1px solid var(--danger-border);
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+
+    .help-card-item:last-child {
+      margin-bottom: 0;
+    }
+
+    /* Navigation Tabs */
+    .tabs-container {
+      display: flex;
+      gap: 6px;
+      background: var(--surface);
+      padding: 6px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 24px;
+      overflow-x: auto;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .tab-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 18px;
+      border-radius: 7px;
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-primary);
+      background: var(--surface-hover);
+    }
+
+    .tab-btn.active {
+      color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .tab-badge {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 1px 7px;
+      border-radius: 9999px;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--text-secondary);
+    }
+
+    .tab-btn.active .tab-badge {
+      background: var(--primary);
+      color: #FFFFFF;
+      border-color: var(--primary);
+    }
+
+    /* Tab Panes */
+    .tab-pane {
+      display: none;
+    }
+
+    .tab-pane.active {
+      display: block;
+    }
+
+    /* KPI Stat Cards Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 1024px) {
+      .kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 600px) {
+      .kpi-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+
+    .kpi-meta h3 {
+      font-size: 12.5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .kpi-meta .kpi-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      line-height: 1.2;
+    }
+
+    .kpi-meta .kpi-subtext {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .kpi-icon-wrap {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .kpi-icon-blue {
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+
+    .kpi-icon-green {
+      background: var(--success-light);
+      color: var(--success);
+    }
+
+    .kpi-icon-amber {
+      background: var(--warning-light);
+      color: var(--warning);
+    }
+
+    .kpi-icon-red {
+      background: var(--danger-light);
+      color: var(--danger);
+    }
+
+    /* Content Cards */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-desc {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      font-weight: normal;
+    }
+
+    .card-body {
+      padding: 20px;
+    }
+
+    /* Two column grid */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 900px) {
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Table styling */
+    .table-responsive {
+      overflow-x: auto;
+      width: 100%;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+      text-align: left;
+    }
+
+    thead th {
+      background: var(--surface-alt);
+      color: var(--text-secondary);
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      padding: 11px 16px;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    tbody td {
+      padding: 13px 16px;
+      border-bottom: 1px solid var(--border-light);
+      color: var(--text-primary);
+      vertical-align: middle;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    tbody tr:hover {
+      background: var(--surface-hover);
+    }
+
+    .mono {
+      font-family: var(--font-mono);
+      font-size: 13px;
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 9px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .badge-success {
+      background: var(--success-light);
+      color: var(--success);
+      border: 1px solid var(--success-border);
+    }
+
+    .badge-warning {
+      background: var(--warning-light);
+      color: var(--warning);
+      border: 1px solid var(--warning-border);
+    }
+
+    .badge-danger {
+      background: var(--danger-light);
+      color: var(--danger);
+      border: 1px solid var(--danger-border);
+    }
+
+    .badge-neutral {
+      background: var(--surface-alt);
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+    }
+
+    /* Inventory Toolbar */
+    .inventory-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .search-box {
+      position: relative;
+      flex: 1;
+      min-width: 260px;
+      max-width: 420px;
+    }
+
+    .search-box svg {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 9px 12px 9px 38px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-primary);
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+
+    .search-box input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-light);
+    }
+
+    .filter-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    select.select-filter {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-primary);
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      cursor: pointer;
+    }
+
+    select.select-filter:focus {
+      border-color: var(--primary);
+    }
+
+    /* Form Elements */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-primary);
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-family: inherit;
+      outline: none;
+      transition: all 0.15s;
+    }
+
+    .form-control:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-light);
+    }
+
+    .form-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    @media (max-width: 500px) {
+      .form-grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Camera Scanner Container */
+    .scanner-panel {
+      display: none;
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .scanner-panel.active {
+      display: block;
+    }
+
+    #reader video {
+      border-radius: 8px;
+      width: 100% !important;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* Modal Dialog */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(3px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      width: 100%;
+      max-width: 520px;
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+      animation: modal-appear 0.15s ease-out;
+    }
+
+    @keyframes modal-appear {
+      from {
+        opacity: 0;
+        transform: scale(0.97) translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-header h3 {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .modal-close-btn {
+      background: transparent;
+      border: none;
+      font-size: 20px;
+      color: var(--text-muted);
+      cursor: pointer;
+      line-height: 1;
+      padding: 4px;
+    }
+
+    .modal-close-btn:hover {
+      color: var(--text-primary);
+    }
+
+    .modal-body {
+      padding: 20px;
+      max-height: 75vh;
+      overflow-y: auto;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 14px 20px;
+      border-top: 1px solid var(--border);
+      background: var(--surface-alt);
+    }
+
+    /* Toast Notification */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .toast {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-lg);
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-size: 13.5px;
+      font-weight: 500;
+      min-width: 280px;
+      animation: toast-in 0.2s ease-out;
+    }
+
+    @keyframes toast-in {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .toast-success {
+      border-left: 4px solid var(--success);
+    }
+
+    .toast-danger {
+      border-left: 4px solid var(--danger);
+    }
+
+    .toast-info {
+      border-left: 4px solid var(--primary);
+    }
+
+    /* Info callout */
+    .callout {
+      display: flex;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      line-height: 1.5;
+      margin-bottom: 18px;
+    }
+
+    .callout-info {
+      background: var(--primary-light);
+      border: 1px solid var(--primary-border);
+      color: var(--text-primary);
+    }
+
+    .callout-info svg {
+      color: var(--primary);
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+
+    /* ===== UI Refresh 2026-11-05 ===== */
+    :root {
+      --font-sans: 'Be Vietnam Pro', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --bg: #F3F8F4;
+      --surface: #FFFFFF;
+      --surface-hover: #F4F8F5;
+      --surface-alt: #F7FBF8;
+      --border: #DEE9E1;
+      --border-light: #ECF3EE;
+      --text-primary: #13241A;
+      --text-secondary: #5B6F63;
+      --text-muted: #8AA091;
+      --primary: #148F42;
+      --primary-hover: #117639;
+      --primary-light: #ECF8F0;
+      --primary-border: #CAE8D4;
+      --success: #148F42;
+      --success-light: #ECF8F0;
+      --success-border: #CAE8D4;
+      --warning: #D48B13;
+      --warning-light: #FFF7E8;
+      --warning-border: #F2D49A;
+      --danger: #E25145;
+      --danger-light: #FFF1EF;
+      --danger-border: #F6C7C2;
+      --shadow-sm: 0 8px 24px rgba(14, 51, 26, 0.05);
+      --shadow: 0 14px 30px rgba(14, 51, 26, 0.06);
+      --shadow-md: 0 18px 36px rgba(14, 51, 26, 0.08);
+    }
+
+    body {
+      background: linear-gradient(180deg, #f7fbf8 0%, #f0f6f2 100%);
+    }
+
+    .app-container {
+      max-width: 1400px;
+      padding: 20px 18px 36px;
+    }
+
+    .top-nav {
+      border-radius: 18px;
+      padding: 18px 22px;
+      box-shadow: var(--shadow);
+    }
+
+    .brand-logo {
+      background: linear-gradient(135deg, #0f8d3e 0%, #1bb257 100%);
+      border-radius: 14px;
+      box-shadow: 0 10px 24px rgba(20, 143, 66, .2);
+    }
+
+    .brand-info h1 {
+      font-size: 22px;
+      letter-spacing: -.02em;
+    }
+
+    .brand-info p {
+      font-size: 13px;
+    }
+
+    .status-indicator {
+      padding: 8px 14px;
+      border-radius: 999px;
+    }
+
+    .admin-hero-banner {
+      margin: 0 0 18px;
+      background: linear-gradient(135deg, #0f8d3e 0%, #18a64b 55%, #32c56d 100%);
+      color: #fff;
+      border-radius: 22px;
+      padding: 24px 24px 20px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      box-shadow: 0 18px 36px rgba(20, 143, 66, .18);
+    }
+
+    .admin-hero-kicker {
+      font-size: 13px;
+      font-weight: 700;
+      opacity: .86;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 8px;
+    }
+
+    .admin-hero-banner h2 {
+      font-size: 28px;
+      line-height: 1.15;
+      letter-spacing: -.03em;
+      margin: 0 0 8px;
+    }
+
+    .admin-hero-banner p {
+      max-width: 720px;
+      font-size: 14px;
+      line-height: 1.6;
+      opacity: .92;
+    }
+
+    .admin-hero-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .hero-badge {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .15);
+      border: 1px solid rgba(255, 255, 255, .18);
+      font-size: 12.5px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .tabs-container {
+      display: flex;
+      gap: 10px;
+      padding: 10px;
+      border-radius: 18px;
+      background: #fff;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      overflow: auto;
+    }
+
+    .tab-btn {
+      border-radius: 14px;
+      padding: 11px 16px;
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, #138a3d 0%, #19a64c 100%);
+      color: #fff;
+      box-shadow: 0 12px 24px rgba(20, 143, 66, .18);
+    }
+
+    .tab-btn.active .tab-badge {
+      background: #fff;
+      color: #148f42;
+      border-color: #fff;
+    }
+
+    .kpi-card,
+    .card {
+      border-radius: 18px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .kpi-card {
+      padding: 20px 22px;
+    }
+
+    .kpi-meta .kpi-value {
+      font-size: 30px;
+    }
+
+    .kpi-icon-wrap {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+    }
+
+    .card-header {
+      padding: 18px 22px;
+    }
+
+    .card-body {
+      padding: 22px;
+    }
+
+    .card-title {
+      font-size: 17px;
+    }
+
+    .table-responsive table {
+      font-size: 13px;
+    }
+
+    thead th {
+      background: #f8fbf9;
+    }
+
+    .btn {
+      border-radius: 12px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #138a3d 0%, #19a64c 100%);
+      border-color: transparent;
+    }
+
+    .btn-outline:hover {
+      background: #F5FAF6;
+    }
+
+    .badge {
+      border-radius: 999px;
+      padding: 4px 10px;
+    }
+
+    .modal-card {
+      border-radius: 20px;
+    }
+
+    @media (min-width: 1180px) {
+      .tabs-container {
+        float: left;
+        width: 250px;
+        flex-direction: column;
+        position: sticky;
+        top: 18px;
+        padding: 14px;
+        background: linear-gradient(180deg, #0d6f33 0%, #095728 100%);
+        border: none;
+        box-shadow: 0 18px 36px rgba(7, 55, 25, .2);
+      }
+
+      .tab-btn {
+        width: 100%;
+        justify-content: flex-start;
+        color: rgba(255, 255, 255, .82);
+      }
+
+      .tab-btn:hover {
+        background: rgba(255, 255, 255, .08);
+        color: #fff;
+      }
+
+      .tab-btn.active {
+        background: rgba(255, 255, 255, .16);
+      }
+
+      .tab-btn .tab-badge {
+        background: rgba(255, 255, 255, .14);
+        color: #fff;
+        border-color: transparent;
+      }
+
+      .tab-pane {
+        margin-left: 274px;
+      }
+
+      .help-alert-box,
+      .admin-hero-banner,
+      .top-nav {
+        margin-left: 0;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .admin-hero-banner {
+        flex-direction: column;
+      }
+
+      .admin-hero-banner h2 {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="app-container">
+
+    <!-- TOP NAVIGATION HEADER -->
+    <header class="top-nav">
+      <div class="nav-brand">
+        <div class="brand-logo">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="8" cy="21" r="1"></circle>
+            <circle cx="19" cy="21" r="1"></circle>
+            <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path>
+          </svg>
+        </div>
+        <div class="brand-info">
+          <h1>SmartCart AI Admin</h1>
+          <p>Quản trị sản phẩm, đơn hàng, thành viên và AI</p>
+        </div>
+      </div>
+
+      <div class="nav-actions">
+        <div class="status-indicator" id="serverStatusBadge">
+          <span class="status-dot"></span>
+          <span id="serverStatusText">Máy chủ: Trực tuyến (8080)</span>
+        </div>
+
+        <!-- Nút chuyển đổi Sáng / Tối -->
+        <button class="btn btn-outline btn-icon-only" id="themeToggleBtn" title="Chuyển chế độ Sáng / Tối"
+          onclick="toggleTheme()">
+          <svg id="themeIconSun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg id="themeIconMoon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+
+        <!-- Nút làm mới dữ liệu -->
+        <button class="btn btn-outline" onclick="loadAdminData(true)" id="refreshBtn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+          </svg>
+          <span>Đồng bộ</span>
+        </button>
+
+        <!-- Nút Đăng xuất -->
+        <button class="btn btn-outline" onclick="handleAdminLogout()" id="logoutBtn" title="Đăng xuất khỏi hệ thống"
+          style="color: var(--danger); border-color: var(--danger-border);">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+          <span>Đăng xuất</span>
+        </button>
+      </div>
+    </header>
+    <section class="admin-hero-banner">
+      <div>
+        <div class="admin-hero-kicker">Tổng quan hệ thống</div>
+        <h2>Điều hành SmartCart AI theo thời gian thực</h2>
+        <p>Theo dõi sản phẩm, đơn hàng, thành viên VIP và cảnh báo tồn kho trên một giao diện trực quan, gọn và dễ trình
+          bày cho đồ án.</p>
+      </div>
+      <div class="admin-hero-badges">
+        <span class="hero-badge">📦 Kho hàng</span>
+        <span class="hero-badge">🛒 Đơn hàng</span>
+        <span class="hero-badge">👑 VIP</span>
+        <span class="hero-badge">🤖 AI</span>
+      </div>
+    </section>
+
+
+    <!-- BANNER CẢNH BÁO XE GỌI HỖ TRỢ -->
+    <div class="help-alert-box" id="helpBanner">
+      <div class="help-alert-header">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+        </svg>
+        <span>Yêu cầu trợ giúp từ khách hàng tại quầy:</span>
+      </div>
+      <div id="helpList"></div>
+    </div>
+
+    <!-- NAVIGATION TABS -->
+    <nav class="tabs-container">
+      <button class="tab-btn active" onclick="switchTab('overview')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7"></rect>
+          <rect x="14" y="3" width="7" height="7"></rect>
+          <rect x="14" y="14" width="7" height="7"></rect>
+          <rect x="3" y="14" width="7" height="7"></rect>
+        </svg>
+        <span>Tổng quan & KPI</span>
+      </button>
+
+      <button class="tab-btn" onclick="switchTab('inventory')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path
+            d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
+          </path>
+          <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+          <line x1="12" y1="22.08" x2="12" y2="12"></line>
+        </svg>
+        <span>Kho hàng & Sản phẩm</span>
+        <span class="tab-badge" id="navInvBadge">0</span>
+      </button>
+
+      <button class="tab-btn" onclick="switchTab('sales')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="1" x2="12" y2="23"></line>
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+        </svg>
+        <span>Doanh thu & Đơn hàng</span>
+      </button>
+
+      <button class="tab-btn" onclick="switchTab('settings')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path
+            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+          </path>
+        </svg>
+        <span>Cổng PayOS & Cài đặt</span>
+      </button>
+    </nav>
+
+    <!-- TAB 1: TỔNG QUAN & KPI -->
+    <div class="tab-pane active" id="pane-overview">
+      <!-- 4 KPI THỰC TẾ -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-meta">
+            <h3>Tổng Doanh Thu</h3>
+            <div class="kpi-value" id="kpiRevenue">0₫</div>
+            <div class="kpi-subtext">Đã thanh toán thực tế</div>
+          </div>
+          <div class="kpi-icon-wrap kpi-icon-green">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="1" x2="12" y2="23"></line>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-meta">
+            <h3>Đơn Hoàn Tất</h3>
+            <div class="kpi-value" id="kpiOrderCount">0</div>
+            <div class="kpi-subtext">Hóa đơn thanh toán thành công</div>
+          </div>
+          <div class="kpi-icon-wrap kpi-icon-blue">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <path d="M16 10a4 4 0 0 1-8 0"></path>
+            </svg>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-meta">
+            <h3>Mặt Hàng Trong Kho</h3>
+            <div class="kpi-value" id="kpiProductCount">0</div>
+            <div class="kpi-subtext">Đang quản lý trong danh mục</div>
+          </div>
+          <div class="kpi-icon-wrap kpi-icon-amber">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path
+                d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
+              </path>
+            </svg>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-meta">
+            <h3>Cảnh Báo Hết Hàng</h3>
+            <div class="kpi-value" id="kpiOutOfStockCount">0</div>
+            <div class="kpi-subtext" id="kpiOutOfStockSub">Sản phẩm tồn kho bằng 0</div>
+          </div>
+          <div class="kpi-icon-wrap kpi-icon-red">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+              <line x1="12" y1="9" x2="12" y2="13"></line>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- TÓM TẮT DOANH THU & ĐƠN MỚI -->
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Doanh thu theo ngày</div>
+              <div class="card-desc">Thống kê doanh số theo từng mốc thời gian</div>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="switchTab('sales')">Xem tất cả</button>
+          </div>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Ngày</th>
+                  <th>Số đơn</th>
+                  <th>Doanh thu</th>
+                </tr>
+              </thead>
+              <tbody id="overviewDailyRevenueTable">
+                <tr>
+                  <td colspan="3" style="text-align:center; color:var(--text-muted); padding:24px;">Đang tải dữ liệu...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Hóa đơn gần nhất</div>
+              <div class="card-desc">Các giao dịch thanh toán thành công mới ghi nhận</div>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="switchTab('sales')">Xem tất cả</button>
+          </div>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Mã đơn</th>
+                  <th>Thời gian</th>
+                  <th>Thiết bị</th>
+                  <th>Tổng tiền</th>
+                </tr>
+              </thead>
+              <tbody id="overviewRecentSalesTable">
+                <tr>
+                  <td colspan="4" style="text-align:center; color:var(--text-muted); padding:24px;">Đang tải dữ liệu...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: KHO HÀNG & SẢN PHẨM -->
+    <div class="tab-pane" id="pane-inventory">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Danh mục sản phẩm trong kho</div>
+            <div class="card-desc">Quản lý giá bán, mã vạch, phân loại quầy và số lượng tồn</div>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <button class="btn btn-outline" id="cameraToggleBtn">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                <circle cx="12" cy="13" r="4"></circle>
+              </svg>
+              <span id="cameraBtnText">Quét mã camera</span>
+            </button>
+            <button class="btn btn-primary" onclick="openAddModal()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              <span>Thêm sản phẩm</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <!-- VÙNG CAMERA SCANNER (KHI BẬT) -->
+          <div class="scanner-panel" id="scannerWrap">
+            <div style="font-weight: 600; margin-bottom: 8px; color: var(--primary);">Khung quét mã vạch trực tiếp</div>
+            <div id="reader"></div>
+            <div id="scannerStatus" style="font-size: 13px; color: var(--text-muted); margin-top: 8px;">Đang khởi động
+              camera...</div>
+          </div>
+
+          <!-- THANH CÔNG CỤ TÌM KIẾM & LỌC -->
+          <div class="inventory-toolbar">
+            <div class="search-box">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <input type="text" id="searchInventory" placeholder="Tìm theo mã vạch hoặc tên sản phẩm..."
+                oninput="renderInventory()">
+            </div>
+
+            <div class="filter-group">
+              <select class="select-filter" id="filterCounter" onchange="renderInventory()">
+                <option value="">Tất cả quầy hàng</option>
+                <option value="Quầy rau củ">Quầy rau củ</option>
+                <option value="Quầy đồ uống">Quầy đồ uống</option>
+                <option value="Quầy bánh kẹo">Quầy bánh kẹo</option>
+                <option value="Quầy đồ đông lạnh">Quầy đồ đông lạnh</option>
+              </select>
+
+              <select class="select-filter" id="filterStock" onchange="renderInventory()">
+                <option value="">Tất cả tồn kho</option>
+                <option value="in_stock">Còn hàng (> 0)</option>
+                <option value="low_stock">Sắp hết (≤ 3)</option>
+                <option value="out_of_stock">Hết hàng (= 0)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- BẢNG DANH SÁCH SẢN PHẨM -->
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Mã vạch</th>
+                  <th>Tên sản phẩm</th>
+                  <th>Quầy hàng</th>
+                  <th>Giá bán</th>
+                  <th>Khối lượng</th>
+                  <th>Tồn kho</th>
+                  <th style="text-align: right;">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody id="inventoryTable">
+                <tr>
+                  <td colspan="7" style="text-align:center; color:var(--text-muted); padding:30px;">Đang tải danh sách
+                    tồn kho...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: DOANH THU & ĐƠN HÀNG -->
+    <div class="tab-pane" id="pane-sales">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Báo cáo doanh thu theo từng ngày</div>
+            <div class="card-desc">Tổng hợp số lượng đơn và doanh số đã thực thu qua hệ thống</div>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Ngày giao dịch</th>
+                <th>Số lượng đơn</th>
+                <th>Tổng doanh thu</th>
+                <th>Trung bình / đơn</th>
+              </tr>
+            </thead>
+            <tbody id="dailyRevenueTable">
+              <tr>
+                <td colspan="4" style="text-align:center; color:var(--text-muted); padding:30px;">Đang tải dữ liệu...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Lịch sử hóa đơn bán hàng</div>
+            <div class="card-desc">Danh sách các đơn thanh toán thành công (Status: PAID)</div>
+          </div>
+          <div id="salesTotal"
+            style="font-weight: 700; color: var(--primary); font-family: var(--font-mono); font-size: 15px;">Tổng: 0₫
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Mã đơn</th>
+                <th>Thời gian tạo</th>
+                <th>Nguồn thiết bị</th>
+                <th>Trạng thái</th>
+                <th>Thành viên</th>
+                <th>Giảm giá</th>
+                <th style="text-align: right;">Tổng thanh toán</th>
+              </tr>
+            </thead>
+            <tbody id="salesTable">
+              <tr>
+                <td colspan="7" style="text-align:center; color:var(--text-muted); padding:30px;">Đang tải lịch sử đơn
+                  hàng...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: CỔNG PAYOS & CÀI ĐẶT -->
+    <div class="tab-pane" id="pane-settings">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Cấu hình Webhook PayOS</div>
+              <div class="card-desc">Đăng ký URL nhận kết quả thanh toán từ cổng VietQR / PayOS</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="callout callout-info">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              </svg>
+              <div>
+                Khi khách hàng chuyển khoản qua mã QR, PayOS sẽ gửi tín hiệu tự động tới Webhook URL này để cập nhật đơn
+                hàng thành <strong>PAID</strong> ngay lập tức.
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="webhookUrlInput">Địa chỉ Webhook công khai (Domain / Ngrok / Cloudflare
+                Tunnel):</label>
+              <input type="text" id="webhookUrlInput" class="form-control mono"
+                placeholder="https://your-domain.com/api/payos-webhook">
+            </div>
+
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <button class="btn btn-primary" onclick="confirmWebhook()" id="webhookSubmitBtn">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+                <span>Kích hoạt Webhook với PayOS</span>
+              </button>
+            </div>
+            <div id="webhookMsg" style="font-size: 13px; margin-top: 12px; font-weight: 500;"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Thông số kết nối hệ thống</div>
+              <div class="card-desc">Cấu hình kết nối giữa thiết bị Smart Cart và máy chủ</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div style="display: flex; flex-direction: column; gap: 14px;">
+              <div
+                style="display: flex; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid var(--border-light);">
+                <span style="color: var(--text-secondary);">Địa chỉ IP Raspberry Pi:</span>
+                <span class="mono" id="piHostDisplay" style="font-weight: 600;">192.168.57.153</span>
+              </div>
+              <div
+                style="display: flex; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid var(--border-light);">
+                <span style="color: var(--text-secondary);">Cổng dịch vụ backend:</span>
+                <span class="mono" style="font-weight: 600;">8080 (Flask API & Static)</span>
+              </div>
+              <div
+                style="display: flex; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid var(--border-light);">
+                <span style="color: var(--text-secondary);">Màn hình Kiosk khách hàng:</span>
+                <a href="/" target="_blank" class="mono"
+                  style="color: var(--primary); text-decoration: none;">/index.html</a>
+              </div>
+              <div style="display: flex; justify-content: space-between;">
+                <span style="color: var(--text-secondary);">Dịch vụ nhúng AI Gemini:</span>
+                <span class="badge badge-success">Sẵn sàng (gemini-embedding-2)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MODAL THÊM SẢN PHẨM MỚI -->
+  <div class="modal-overlay" id="addModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Thêm sản phẩm mới vào kho</h3>
+        <button class="modal-close-btn" onclick="closeAddModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label" for="newBarcode">Mã vạch (Barcode) *</label>
+            <input type="text" id="newBarcode" class="form-control mono" placeholder="VD: 8935001710012">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="newName">Tên sản phẩm *</label>
+            <input type="text" id="newName" class="form-control" placeholder="VD: Sữa tươi Vinamilk 1L">
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label" for="newPrice">Giá niêm yết (₫) *</label>
+            <input type="number" id="newPrice" class="form-control mono" placeholder="VD: 34000">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="newStock">Số lượng tồn kho</label>
+            <input type="number" id="newStock" class="form-control mono" value="10">
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label" for="newWeight">Cân nặng cảm biến (gram)</label>
+            <input type="number" id="newWeight" class="form-control mono" placeholder="VD: 1050 (Cả vỏ/bao bì)">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="newCounter">Quầy trưng bày</label>
+            <select id="newCounter" class="form-control">
+              <option value="Quầy rau củ">Quầy rau củ</option>
+              <option value="Quầy đồ uống">Quầy đồ uống</option>
+              <option value="Quầy bánh kẹo">Quầy bánh kẹo</option>
+              <option value="Quầy đồ đông lạnh">Quầy đồ đông lạnh</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label" for="newNetQuantity">Lượng tịnh AI (Net Qty)</label>
+            <input type="number" step="any" id="newNetQuantity" class="form-control mono"
+              placeholder="VD: 500 (Tự suy nếu trống)">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="newNetUnit">Đơn vị tịnh AI (Net Unit)</label>
+            <select id="newNetUnit" class="form-control">
+              <option value="">-- Tự động từ tên SP --</option>
+              <option value="g">g (gram)</option>
+              <option value="kg">kg (kilogram)</option>
+              <option value="ml">ml (mililít)</option>
+              <option value="l">l (lít)</option>
+              <option value="quả">quả / trái</option>
+              <option value="củ">củ</option>
+              <option value="bó">bó</option>
+              <option value="miếng">miếng</option>
+              <option value="gói">gói</option>
+              <option value="hộp">hộp</option>
+              <option value="chai">chai</option>
+              <option value="lon">lon</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="newIngredientKey">Tên nguyên liệu chuẩn AI (Tùy chọn)</label>
+          <input type="text" id="newIngredientKey" class="form-control"
+            placeholder="VD: thịt ba chỉ heo, nước mắm, hành lá...">
+        </div>
+        <div id="addMsg" style="font-size: 13px; font-weight: 500; margin-top: 4px;"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeAddModal()">Hủy</button>
+        <button class="btn btn-primary" onclick="addProduct()">Lưu sản phẩm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL SỬA SẢN PHẨM -->
+  <div class="modal-overlay" id="editModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Chỉnh sửa thông tin sản phẩm</h3>
+        <button class="modal-close-btn" onclick="closeEditModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label" for="editBarcode">Mã vạch (Barcode)</label>
+            <input type="text" id="editBarcode" class="form-control mono">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="editName">Tên sản phẩm</label>
+            <input type="text" id="editName" class="form-control">
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label" for="editPrice">Giá bán (₫)</label>
+            <input type="number" id="editPrice" class="form-control mono">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="editStock">Số lượng tồn kho</label>
+            <input type="number" id="editStock" class="form-control mono">
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label" for="editWeight">Cân nặng cảm biến (gram)</label>
+            <input type="number" id="editWeight" class="form-control mono">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="editCounter">Quầy trưng bày</label>
+            <select id="editCounter" class="form-control">
+              <option value="Quầy rau củ">Quầy rau củ</option>
+              <option value="Quầy đồ uống">Quầy đồ uống</option>
+              <option value="Quầy bánh kẹo">Quầy bánh kẹo</option>
+              <option value="Quầy đồ đông lạnh">Quầy đồ đông lạnh</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label" for="editNetQuantity">Lượng tịnh AI (Net Qty)</label>
+            <input type="number" step="any" id="editNetQuantity" class="form-control mono" placeholder="VD: 500">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="editNetUnit">Đơn vị tịnh AI (Net Unit)</label>
+            <select id="editNetUnit" class="form-control">
+              <option value="">-- Tự động từ tên SP --</option>
+              <option value="g">g (gram)</option>
+              <option value="kg">kg (kilogram)</option>
+              <option value="ml">ml (mililít)</option>
+              <option value="l">l (lít)</option>
+              <option value="quả">quả / trái</option>
+              <option value="củ">củ</option>
+              <option value="bó">bó</option>
+              <option value="miếng">miếng</option>
+              <option value="gói">gói</option>
+              <option value="hộp">hộp</option>
+              <option value="chai">chai</option>
+              <option value="lon">lon</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="editIngredientKey">Tên nguyên liệu chuẩn AI (Tùy chọn)</label>
+          <input type="text" id="editIngredientKey" class="form-control" placeholder="VD: thịt ba chỉ heo, nước mắm...">
+        </div>
+        <div id="editMsg" style="font-size: 13px; font-weight: 500; margin-top: 4px;"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeEditModal()">Hủy</button>
+        <button class="btn btn-primary" onclick="saveEdit()">Lưu thay đổi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL ĐĂNG NHẬP ADMIN -->
+  <div class="modal-overlay" id="loginModal" style="z-index: 2000;">
+    <div class="modal-card" style="max-width: 400px;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 20px;">🔐</span>
+          <h3 style="margin: 0;">Đăng Nhập Quản Trị</h3>
+        </div>
+      </div>
+      <form id="adminLoginForm" onsubmit="handleAdminLogin(event)">
+        <div class="modal-body" style="padding: 20px;">
+          <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
+            Hệ thống yêu cầu xác thực để thực hiện các thao tác quản lý kho hàng và thiết lập.
+          </p>
+          <div id="loginAlert"
+            style="display: none; padding: 10px 12px; border-radius: 8px; font-size: 13px; margin-bottom: 14px; background: var(--danger-light); color: var(--danger); border: 1px solid var(--danger-border);">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="loginUsername">Tên đăng nhập</label>
+            <input type="text" id="loginUsername" class="form-control" placeholder="admin" required
+              autocomplete="username">
+          </div>
+          <div class="form-group" style="margin-bottom: 8px;">
+            <label class="form-label" for="loginPassword">Mật khẩu</label>
+            <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" required
+              autocomplete="current-password">
+          </div>
+        </div>
+        <div class="modal-footer"
+          style="padding: 14px 20px; background: var(--surface-alt); border-top: 1px solid var(--border); display: flex; justify-content: flex-end;">
+          <button type="submit" class="btn btn-primary" id="loginSubmitBtn" style="width: 100%;">
+            Đăng Nhập
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- KHUNG TOAST NOTIFICATION -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+    // =============================================================
+    // CẤU HÌNH API BASE:
+    // Tự động nhận diện: nếu mở trực tiếp bằng file:/// thì gọi IP Raspberry Pi
+    // Nếu mở qua web server http:// thì dùng đường dẫn tương đối /api
+    // =============================================================
+    // Đổi địa chỉ Pi tại đây (hoặc đặt localStorage 'smartcart_pi_host') khi đổi mạng
+    const PI_HOST = localStorage.getItem('smartcart_pi_host') || 'http://192.168.57.153:8080';
+    const API_BASE = (window.location.protocol === 'file:')
+      ? PI_HOST + '/api'
+      : '/api';
+
+    // Chống XSS: escape mọi giá trị động trước khi đưa vào innerHTML
+    function escapeHtml(value) {
+      if (value === null || value === undefined) return '';
+      return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    // Hiển thị địa chỉ máy chủ thật đang dùng
+    document.addEventListener('DOMContentLoaded', () => {
+      const el = document.getElementById('piHostDisplay');
+      if (el) el.textContent = (window.location.protocol === 'file:') ? PI_HOST.replace(/^https?:\/\//, '').replace(/:\d+$/, '') : window.location.hostname;
+    });
+
+    // =============================================================
+    // QUẢN LÝ XÁC THỰC VÀ BẢO MẬT API ADMIN
+    // =============================================================
+    function getAdminToken() {
+      return localStorage.getItem('smartcart_admin_token') || '';
+    }
+
+    function setAdminToken(token) {
+      if (token) {
+        localStorage.setItem('smartcart_admin_token', token);
+      } else {
+        localStorage.removeItem('smartcart_admin_token');
+      }
+    }
+
+    function showLoginModal(message = '') {
+      const modal = document.getElementById('loginModal');
+      const alertEl = document.getElementById('loginAlert');
+      if (message) {
+        alertEl.textContent = message;
+        alertEl.style.display = 'block';
+      } else {
+        alertEl.style.display = 'none';
+      }
+      modal.classList.add('active');
+      const userField = document.getElementById('loginUsername');
+      if (userField) setTimeout(() => userField.focus(), 150);
+    }
+
+    function closeLoginModal() {
+      const modal = document.getElementById('loginModal');
+      modal.classList.remove('active');
+      const alertEl = document.getElementById('loginAlert');
+      alertEl.style.display = 'none';
+    }
+
+    async function handleAdminLogin(event) {
+      event.preventDefault();
+      const username = document.getElementById('loginUsername').value.trim();
+      const password = document.getElementById('loginPassword').value.trim();
+      const alertEl = document.getElementById('loginAlert');
+      const btn = document.getElementById('loginSubmitBtn');
+
+      if (!username || !password) {
+        alertEl.textContent = 'Vui lòng nhập tên đăng nhập và mật khẩu!';
+        alertEl.style.display = 'block';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Đang xác thực...';
+      alertEl.style.display = 'none';
+
+      try {
+        const res = await fetch(`${API_BASE}/admin/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        let data = {};
+        try {
+          data = await res.json();
+        } catch (e) { }
+
+        if (res.ok && data.token) {
+          setAdminToken(data.token);
+          closeLoginModal();
+          showToast('Đăng nhập quản trị thành công!', 'success');
+          loadAdminData();
+          startHelpPolling();
+        } else if (res.status === 401) {
+          alertEl.textContent = data.message || 'Tên đăng nhập hoặc mật khẩu không chính xác!';
+          alertEl.style.display = 'block';
+        } else if (res.status === 404) {
+          alertEl.textContent = 'Server chưa có API đăng nhập (404). Hãy đảm bảo server đang chạy bản app.py mới nhất!';
+          alertEl.style.display = 'block';
+        } else {
+          alertEl.textContent = data.message || `Lỗi từ máy chủ (${res.status})!`;
+          alertEl.style.display = 'block';
+        }
+      } catch (err) {
+        alertEl.textContent = `Không thể kết nối tới máy chủ (${API_BASE})! Vui lòng kiểm tra server Flask đã bật chưa.`;
+        alertEl.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Đăng Nhập';
+      }
+    }
+
+    async function handleAdminLogout() {
+      const token = getAdminToken();
+      if (token) {
+        try {
+          await fetch(`${API_BASE}/admin/logout`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+        } catch (e) { }
+      }
+      setAdminToken(null);
+      showToast('Đã đăng xuất khỏi tài khoản quản trị.', 'neutral');
+      showLoginModal('Bạn đã đăng xuất. Vui lòng đăng nhập lại để tiếp tục thao tác.');
+    }
+
+    async function adminFetch(url, options = {}) {
+      const token = getAdminToken();
+      const headers = { ...(options.headers || {}) };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(url, { ...options, headers });
+      if (response.status === 401) {
+        setAdminToken(null);
+        showLoginModal('Phiên đăng nhập đã hết hạn hoặc không có quyền. Vui lòng đăng nhập lại!');
+        throw new Error('Unauthorized');
+      }
+      return response;
+    }
+
+    // =============================================================
+    // QUẢN LÝ GIAO DIỆN SÁNG / TỐI (LIGHT / DARK THEME)
+    // =============================================================
+    function initTheme() {
+      const saved = localStorage.getItem('smartcart_theme') || 'light';
+      applyTheme(saved);
+    }
+
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('smartcart_theme', theme);
+      const sunIcon = document.getElementById('themeIconSun');
+      const moonIcon = document.getElementById('themeIconMoon');
+      if (theme === 'dark') {
+        sunIcon.style.display = 'block';
+        moonIcon.style.display = 'none';
+      } else {
+        sunIcon.style.display = 'none';
+        moonIcon.style.display = 'block';
+      }
+    }
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme') || 'light';
+      applyTheme(current === 'dark' ? 'light' : 'dark');
+    }
+
+    // =============================================================
+    // ĐIỀU HƯỚNG TABS
+    // =============================================================
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+
+      const btnIndex = { overview: 0, inventory: 1, sales: 2, settings: 3 }[tabId] || 0;
+      const targetBtn = document.querySelectorAll('.tab-btn')[btnIndex];
+      const targetPane = document.getElementById(`pane-${tabId}`);
+
+      if (targetBtn) targetBtn.classList.add('active');
+      if (targetPane) targetPane.classList.add('active');
+    }
+
+    // =============================================================
+    // TOAST THÔNG BÁO CHUYÊN NGHIỆP
+    // =============================================================
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+
+      let iconSvg = '';
+      if (type === 'success') {
+        iconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--success)"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+      } else if (type === 'danger') {
+        iconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--danger)"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`;
+      } else {
+        iconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--primary)"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
+      }
+
+      toast.innerHTML = `${iconSvg}<span>${escapeHtml(message)}</span>`;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(10px)';
+        toast.style.transition = 'all 0.25s ease';
+        setTimeout(() => toast.remove(), 250);
+      }, 3500);
+    }
+
+    // Định dạng tiền tệ VND
+    function money(n) {
+      const val = Math.round(Number(n) || 0);
+      return val.toLocaleString('vi-VN') + '₫';
+    }
+
+    // Biến lưu trữ dữ liệu
+    let currentInventory = [];
+    let editingOldBarcode = null;
+    let currentSales = [];
+    let currentDailyRevenue = [];
+
+    // =============================================================
+    // TẢI TOÀN BỘ DỮ LIỆU
+    // =============================================================
+    async function loadAdminData(isManual = false) {
+      const refreshBtn = document.getElementById('refreshBtn');
+      if (refreshBtn) refreshBtn.disabled = true;
+
+      try {
+        await Promise.all([loadInventory(), loadSales(), loadDailyRevenue()]);
+        updateServerStatus('online');
+        if (isManual) showToast('Đồng bộ dữ liệu thành công', 'success');
+      } catch (err) {
+        if (err && err.message && err.message.includes('CSDL')) {
+          updateServerStatus('db_error', err.message);
+        } else {
+          updateServerStatus('offline');
+        }
+        if (isManual) showToast('Không thể kết nối CSDL hoặc máy chủ: ' + (err.message || ''), 'danger');
+      } finally {
+        if (refreshBtn) refreshBtn.disabled = false;
+      }
+    }
+
+    function updateServerStatus(status, detail = '') {
+      const badge = document.getElementById('serverStatusBadge');
+      const text = document.getElementById('serverStatusText');
+      if (status === 'online') {
+        badge.style.background = 'var(--success-light)';
+        badge.style.color = 'var(--success)';
+        badge.style.borderColor = 'var(--success-border)';
+        text.textContent = 'Máy chủ: Trực tuyến';
+      } else if (status === 'db_error') {
+        badge.style.background = '#fff3cd';
+        badge.style.color = '#856404';
+        badge.style.borderColor = '#ffeeba';
+        text.textContent = 'Máy chủ: Lỗi CSDL MySQL';
+      } else {
+        badge.style.background = 'var(--danger-light)';
+        badge.style.color = 'var(--danger)';
+        badge.style.borderColor = 'var(--danger-border)';
+        text.textContent = 'Máy chủ: Mất kết nối';
+      }
+    }
+
+    // 1. TẢI TỒN KHO TỪ MYSQL
+    async function loadInventory() {
+      const tbody = document.getElementById('inventoryTable');
+      try {
+        const res = await adminFetch(`${API_BASE}/admin/inventory`);
+        if (!res.ok) {
+          let msg = `HTTP ${res.status}`;
+          try {
+            const errData = await res.json();
+            if (errData.message) msg = errData.message;
+          } catch (e) { }
+          throw new Error(msg);
+        }
+        const data = await res.json();
+        currentInventory = data;
+
+        // Cập nhật số lượng
+        document.getElementById('navInvBadge').textContent = data.length;
+        document.getElementById('kpiProductCount').textContent = data.length;
+
+        // Đếm số lượng hết hàng (stock <= 0)
+        const outOfStockCount = data.filter(p => Number(p.stock_quantity) <= 0).length;
+        document.getElementById('kpiOutOfStockCount').textContent = outOfStockCount;
+        document.getElementById('kpiOutOfStockSub').textContent = outOfStockCount > 0
+          ? `${outOfStockCount} mặt hàng cần nhập gấp`
+          : 'Tất cả sản phẩm đều còn hàng';
+
+        renderInventory();
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--danger); padding:24px;">❌ Không thể kết nối API kho hàng: <b>${escapeHtml(err.message)}</b></td></tr>`;
+        throw err;
+      }
+    }
+
+    // RENDER BẢNG TỒN KHO VỚI BỘ LỌC
+    function renderInventory() {
+      const tbody = document.getElementById('inventoryTable');
+      const keyword = (document.getElementById('searchInventory').value || '').trim().toLowerCase();
+      const counterFilter = document.getElementById('filterCounter').value;
+      const stockFilter = document.getElementById('filterStock').value;
+
+      let filtered = currentInventory.filter(p => {
+        // Lọc theo từ khóa
+        const matchKey = !keyword || p.barcode.toLowerCase().includes(keyword) || p.name.toLowerCase().includes(keyword);
+        // Lọc theo quầy
+        const matchCounter = !counterFilter || p.counter === counterFilter;
+        // Lọc theo tình trạng kho
+        let matchStock = true;
+        if (stockFilter === 'in_stock') matchStock = p.stock_quantity > 0;
+        else if (stockFilter === 'low_stock') matchStock = p.stock_quantity > 0 && p.stock_quantity <= 3;
+        else if (stockFilter === 'out_of_stock') matchStock = p.stock_quantity <= 0;
+
+        return matchKey && matchCounter && matchStock;
+      });
+
+      tbody.innerHTML = '';
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:32px;">Không có sản phẩm nào phù hợp với điều kiện tìm kiếm</td></tr>`;
+        return;
+      }
+
+      filtered.forEach(p => {
+        let stockBadge = '';
+        const stock = Number(p.stock_quantity) || 0;
+        if (stock <= 0) {
+          stockBadge = `<span class="badge badge-danger">Hết hàng (0)</span>`;
+        } else if (stock <= 3) {
+          stockBadge = `<span class="badge badge-warning">Sắp hết (${stock})</span>`;
+        } else {
+          stockBadge = `<span class="badge badge-success">Còn hàng (${stock})</span>`;
+        }
+
+        tbody.innerHTML += `
+      <tr>
+        <td class="mono" style="font-weight: 500;">${escapeHtml(p.barcode)}</td>
+        <td style="font-weight: 600;">${escapeHtml(p.name)}</td>
+        <td><span class="badge badge-neutral">${escapeHtml(p.counter || 'Chưa gán')}</span></td>
+        <td class="mono" style="font-weight: 600; color: var(--primary);">${money(p.price)}</td>
+        <td class="mono" style="color: var(--text-secondary);">${p.weight ? p.weight + 'g' : '—'}</td>
+        <td>${stockBadge}</td>
+        <td style="text-align: right; white-space: nowrap;">
+          <button class="btn btn-outline btn-sm" data-barcode="${escapeHtml(p.barcode)}" onclick="openEditModal(this.dataset.barcode)" style="margin-right: 4px;">Sửa</button>
+          <button class="btn btn-danger-outline btn-sm" data-barcode="${escapeHtml(p.barcode)}" onclick="deleteProduct(this.dataset.barcode)">Xóa</button>
+        </td>
+      </tr>
+    `;
+      });
+    }
+
+    // 2. TẢI NHẬT KÝ ĐƠN HÀNG
+    async function loadSales() {
+      const tbody = document.getElementById('salesTable');
+      const overviewTbody = document.getElementById('overviewRecentSalesTable');
+      try {
+        const res = await adminFetch(`${API_BASE}/admin/sales`);
+        if (!res.ok) {
+          let msg = `HTTP ${res.status}`;
+          try {
+            const errData = await res.json();
+            if (errData.message) msg = errData.message;
+          } catch (e) { }
+          throw new Error(msg);
+        }
+        const data = await res.json();
+        currentSales = data;
+
+        const totalRevenue = data.reduce((sum, item) => sum + item.total_amount, 0);
+        document.getElementById('salesTotal').textContent = `Tổng: ${money(totalRevenue)}`;
+        document.getElementById('kpiRevenue').textContent = money(totalRevenue);
+        document.getElementById('kpiOrderCount').textContent = data.length;
+
+        tbody.innerHTML = '';
+
+        if (data.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:30px;">Chưa có đơn hàng nào ghi nhận</td></tr>`;
+          overviewTbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:20px;">Chưa có đơn hàng nào</td></tr>`;
+          return;
+        }
+
+        // Render bảng đầy đủ
+        data.forEach(o => {
+          const sourceBadge = o.device_source === 'phone'
+            ? `<span class="badge badge-neutral">Ứng dụng di động</span>`
+            : `<span class="badge badge-neutral">Kiosk Màn hình</span>`;
+
+          const statusBadge = o.status === 'PAID'
+            ? `<span class="badge badge-success">Thành công</span>`
+            : (o.status === 'PAID_OUT_OF_STOCK'
+              ? `<span class="badge badge-warning" style="background:#FEF3C7;color:#92400E;border:1px solid #FCD34D;" title="Thanh toán sau khi đơn bị hủy - Thiếu hàng tồn kho">Cần đối soát kho</span>`
+              : `<span class="badge badge-neutral">${escapeHtml(o.status)}</span>`);
+
+          tbody.innerHTML += `
+        <tr>
+          <td class="mono" style="font-weight: 600;">#${o.order_id}</td>
+          <td style="color: var(--text-secondary);">${escapeHtml(o.created_at)}</td>
+          <td>${sourceBadge}</td>
+          <td>${statusBadge}</td>
+          <td class="mono">${o.member_phone ? escapeHtml(o.member_phone) : '—'}</td>
+          <td class="mono">${o.discount_amount > 0 ? '-' + money(o.discount_amount) + (o.points_used ? ' (' + o.points_used + ' điểm)' : '') : '—'}</td>
+          <td class="mono" style="font-weight: 700; text-align: right; color: var(--primary);">${money(o.total_amount)}</td>
+        </tr>
+      `;
+        });
+
+        // Render 5 đơn mới nhất ở tab Tổng quan
+        overviewTbody.innerHTML = '';
+        data.slice(0, 5).forEach(o => {
+          overviewTbody.innerHTML += `
+        <tr>
+          <td class="mono" style="font-weight: 600;">#${o.order_id}</td>
+          <td style="color: var(--text-secondary); font-size:12px;">${escapeHtml(o.created_at)}</td>
+          <td><span class="badge badge-neutral" style="font-size:11px;">${o.device_source === 'phone' ? 'Di động' : 'Kiosk'}</span></td>
+          <td class="mono" style="font-weight: 600; color: var(--primary);">${money(o.total_amount)}</td>
+        </tr>
+      `;
+        });
+
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--danger); padding:24px;">Lỗi kết nối API lịch sử đơn lẻ</td></tr>`;
+        throw err;
+      }
+    }
+
+    // 3. TẢI DOANH THU THEO NGÀY
+    async function loadDailyRevenue() {
+      const tbody = document.getElementById('dailyRevenueTable');
+      const overviewTbody = document.getElementById('overviewDailyRevenueTable');
+      try {
+        const res = await adminFetch(`${API_BASE}/admin/revenue-daily`);
+        if (!res.ok) {
+          let msg = `HTTP ${res.status}`;
+          try {
+            const errData = await res.json();
+            if (errData.message) msg = errData.message;
+          } catch (e) { }
+          throw new Error(msg);
+        }
+        const data = await res.json();
+        currentDailyRevenue = data;
+
+        tbody.innerHTML = '';
+
+        if (data.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:30px;">Chưa có dữ liệu doanh thu</td></tr>`;
+          overviewTbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:var(--text-muted); padding:20px;">Chưa có dữ liệu</td></tr>`;
+          return;
+        }
+
+        data.forEach(d => {
+          const avg = d.order_count > 0 ? (d.total_revenue / d.order_count) : 0;
+          tbody.innerHTML += `
+        <tr>
+          <td style="font-weight: 600;">${escapeHtml(d.sale_date)}</td>
+          <td class="mono">${d.order_count} đơn</td>
+          <td class="mono" style="font-weight: 700; color: var(--success);">${money(d.total_revenue)}</td>
+          <td class="mono" style="color: var(--text-secondary);">${money(avg)}</td>
+        </tr>
+      `;
+        });
+
+        overviewTbody.innerHTML = '';
+        data.slice(0, 5).forEach(d => {
+          overviewTbody.innerHTML += `
+        <tr>
+          <td style="font-weight: 500;">${escapeHtml(d.sale_date)}</td>
+          <td class="mono">${d.order_count} đơn</td>
+          <td class="mono" style="font-weight: 600; color: var(--success);">${money(d.total_revenue)}</td>
+        </tr>
+      `;
+        });
+
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--danger); padding:24px;">Lỗi kết nối API doanh thu theo ngày</td></tr>`;
+        throw err;
+      }
+    }
+
+    // =============================================================
+    // THÊM SẢN PHẨM MỚI (MODAL)
+    // =============================================================
+    function openAddModal() {
+      document.getElementById('newBarcode').value = '';
+      document.getElementById('newName').value = '';
+      document.getElementById('newPrice').value = '';
+      document.getElementById('newStock').value = '10';
+      document.getElementById('newWeight').value = '';
+      document.getElementById('newNetQuantity').value = '';
+      document.getElementById('newNetUnit').value = '';
+      document.getElementById('newIngredientKey').value = '';
+      document.getElementById('addMsg').textContent = '';
+      document.getElementById('addModal').classList.add('active');
+      setTimeout(() => document.getElementById('newBarcode').focus(), 100);
+    }
+
+    function closeAddModal() {
+      document.getElementById('addModal').classList.remove('active');
+    }
+
+    async function addProduct() {
+      const barcode = document.getElementById('newBarcode').value.trim();
+      const name = document.getElementById('newName').value.trim();
+      const price = parseFloat(document.getElementById('newPrice').value);
+      const stock_quantity = parseInt(document.getElementById('newStock').value) || 0;
+      const weight = parseFloat(document.getElementById('newWeight').value) || 0;
+      const counter = document.getElementById('newCounter').value;
+      const net_quantity_raw = document.getElementById('newNetQuantity').value.trim();
+      const net_quantity = net_quantity_raw ? parseFloat(net_quantity_raw) : null;
+      const net_unit = document.getElementById('newNetUnit').value.trim() || null;
+      const ingredient_key = document.getElementById('newIngredientKey').value.trim() || null;
+      const msg = document.getElementById('addMsg');
+
+      if (!barcode || !name || isNaN(price) || price < 0 || stock_quantity < 0 || weight < 0) {
+        msg.style.color = 'var(--danger)';
+        msg.textContent = 'Vui lòng nhập đầy đủ mã vạch, tên sản phẩm và giá bán hợp lệ. Giá, tồn kho, khối lượng không được âm.';
+        return;
+      }
+
+      if (net_quantity && !net_unit) {
+        msg.style.color = 'var(--danger)';
+        msg.textContent = 'Vui lòng chọn Đơn vị tịnh AI khi đã nhập Lượng tịnh!';
+        return;
+      }
+
+      msg.style.color = 'var(--text-muted)';
+      msg.textContent = 'Đang lưu vào hệ thống...';
+
+      try {
+        const res = await adminFetch(`${API_BASE}/admin/products`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ barcode, name, price, stock_quantity, counter, weight, net_quantity, net_unit, ingredient_key })
+        });
+        const result = await res.json();
+
+        if (res.ok) {
+          closeAddModal();
+          showToast(`Đã thêm sản phẩm "${name}" thành công`, 'success');
+          loadInventory();
+        } else {
+          msg.style.color = 'var(--danger)';
+          msg.textContent = result.message || 'Lỗi khi thêm sản phẩm';
+        }
+      } catch (err) {
+        msg.style.color = 'var(--danger)';
+        msg.textContent = 'Không thể kết nối tới máy chủ Flask';
+      }
+    }
+
+    // =============================================================
+    // CHỈNH SỬA SẢN PHẨM (MODAL)
+    // =============================================================
+    function openEditModal(barcode) {
+      const p = currentInventory.find(x => x.barcode === barcode);
+      if (!p) return;
+      editingOldBarcode = barcode;
+      document.getElementById('editBarcode').value = p.barcode;
+      document.getElementById('editName').value = p.name;
+      document.getElementById('editPrice').value = p.price;
+      document.getElementById('editStock').value = p.stock_quantity;
+      document.getElementById('editWeight').value = p.weight || '';
+      document.getElementById('editCounter').value = p.counter;
+      document.getElementById('editNetQuantity').value = (p.net_quantity !== null && p.net_quantity !== undefined) ? p.net_quantity : '';
+      document.getElementById('editNetUnit').value = p.net_unit || '';
+      document.getElementById('editIngredientKey').value = p.ingredient_key || '';
+      document.getElementById('editMsg').textContent = '';
+      document.getElementById('editModal').classList.add('active');
+      setTimeout(() => document.getElementById('editName').focus(), 100);
+    }
+
+    function closeEditModal() {
+      document.getElementById('editModal').classList.remove('active');
+      editingOldBarcode = null;
+    }
+
+    async function saveEdit() {
+      const barcode = document.getElementById('editBarcode').value.trim();
+      const name = document.getElementById('editName').value.trim();
+      const price = parseFloat(document.getElementById('editPrice').value);
+      const stock_quantity = parseInt(document.getElementById('editStock').value) || 0;
+      const weight = parseFloat(document.getElementById('editWeight').value) || 0;
+      const counter = document.getElementById('editCounter').value;
+      const net_quantity_raw = document.getElementById('editNetQuantity').value.trim();
+      const net_quantity = net_quantity_raw ? parseFloat(net_quantity_raw) : null;
+      const net_unit = document.getElementById('editNetUnit').value.trim() || null;
+      const ingredient_key = document.getElementById('editIngredientKey').value.trim() || null;
+      const msg = document.getElementById('editMsg');
+
+      if (!barcode || !name || isNaN(price) || price < 0 || stock_quantity < 0 || weight < 0) {
+        msg.style.color = 'var(--danger)';
+        msg.textContent = 'Vui lòng nhập đầy đủ mã vạch, tên sản phẩm và giá. Giá, tồn kho, khối lượng không được âm.';
+        return;
+      }
+
+      if (net_quantity && !net_unit) {
+        msg.style.color = 'var(--danger)';
+        msg.textContent = 'Vui lòng chọn Đơn vị tịnh AI khi đã nhập Lượng tịnh!';
+        return;
+      }
+
+      msg.style.color = 'var(--text-muted)';
+      msg.textContent = 'Đang lưu cập nhật...';
+
+      try {
+        const res = await adminFetch(`${API_BASE}/admin/products/${encodeURIComponent(editingOldBarcode)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ barcode, name, price, stock_quantity, counter, weight, net_quantity, net_unit, ingredient_key })
+        });
+        const result = await res.json();
+        if (res.ok) {
+          closeEditModal();
+          showToast(`Đã cập nhật sản phẩm "${name}"`, 'success');
+          loadInventory();
+        } else {
+          msg.style.color = 'var(--danger)';
+          msg.textContent = result.message || 'Lỗi khi cập nhật sản phẩm';
+        }
+      } catch (err) {
+        msg.style.color = 'var(--danger)';
+        msg.textContent = 'Không thể kết nối tới máy chủ Flask';
+      }
+    }
+
+    // =============================================================
+    // XÓA SẢN PHẨM
+    // =============================================================
+    async function deleteProduct(barcode) {
+      const p = currentInventory.find(x => x.barcode === barcode);
+      const name = p ? p.name : barcode;
+      if (!confirm(`Bạn có chắc chắn muốn xóa sản phẩm "${name}" (Mã: ${barcode}) khỏi kho?`)) return;
+
+      try {
+        const res = await adminFetch(`${API_BASE}/admin/products/${encodeURIComponent(barcode)}`, { method: 'DELETE' });
+        const result = await res.json();
+        if (res.ok) {
+          showToast(`Đã xóa sản phẩm "${name}"`, 'success');
+          loadInventory();
+        } else {
+          alert(result.message || 'Không thể xóa sản phẩm này');
+        }
+      } catch (err) {
+        showToast('Lỗi kết nối tới máy chủ', 'danger');
+      }
+    }
+
+    // =============================================================
+    // QUÉT CAMERA ĐỂ NHẬP MÃ VẠCH (HTML5-QRCODE)
+    // =============================================================
+    let html5QrCode = null;
+    let scannerRunning = false;
+    let lastScannedCode = null;
+    let lastScannedAt = 0;
+    const SCAN_DEBOUNCE_MS = 2500;
+
+    const cameraToggleBtn = document.getElementById('cameraToggleBtn');
+    const cameraBtnText = document.getElementById('cameraBtnText');
+    const scannerWrap = document.getElementById('scannerWrap');
+    const scannerStatus = document.getElementById('scannerStatus');
+
+    async function startScanner() {
+      if (scannerRunning) return;
+      scannerWrap.classList.add('active');
+      cameraToggleBtn.disabled = true;
+      cameraBtnText.textContent = 'Đang mở camera...';
+
+      try {
+        if (typeof Html5Qrcode === 'undefined') {
+          throw new Error('Chưa tải được thư viện quét mã barcode_scanner_min.js');
+        }
+
+        if (!html5QrCode) {
+          html5QrCode = new Html5Qrcode('reader', {
+            formatsToSupport: [
+              Html5QrcodeSupportedFormats.EAN_13,
+              Html5QrcodeSupportedFormats.EAN_8,
+              Html5QrcodeSupportedFormats.UPC_A,
+              Html5QrcodeSupportedFormats.UPC_E,
+              Html5QrcodeSupportedFormats.CODE_128,
+              Html5QrcodeSupportedFormats.CODE_39,
+              Html5QrcodeSupportedFormats.QR_CODE
+            ],
+            verbose: false
+          });
+        }
+
+        const startPromise = html5QrCode.start(
+          { facingMode: 'environment' },
+          { fps: 10, qrbox: { width: 280, height: 160 } },
+          onScanSuccess,
+          () => { }
+        );
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Quá thời gian chờ phản hồi camera từ trình duyệt')), 5000)
+        );
+        await Promise.race([startPromise, timeoutPromise]);
+        scannerRunning = true;
+        cameraBtnText.textContent = 'Đóng camera';
+        scannerStatus.textContent = 'Hướng mã vạch vào giữa khung chữ nhật để quét...';
+      } catch (err) {
+        // Fallback sang luồng camera trực tiếp từ Raspberry Pi Server (nếu OpenCV đang giữ /dev/video0)
+        try {
+          // Kiểm tra camera server có dùng được không (403 nếu mở từ máy khác / qua tunnel)
+          const probe = await fetch(`${API_BASE}/barcode/scan`);
+          if (!probe.ok) {
+            let m = `Camera server không khả dụng (HTTP ${probe.status})`;
+            try { const d = await probe.json(); if (d && d.message) m = d.message; } catch (e) { }
+            throw new Error(m);
+          }
+          const readerEl = document.getElementById('reader');
+          readerEl.innerHTML = `<img id="adminServerStreamImg" src="${API_BASE}/camera/stream?t=${Date.now()}" style="width:100%; max-width:480px; border-radius:8px;" alt="Pi Camera Stream">`;
+          window._adminBarcodePoll = setInterval(async () => {
+            try {
+              const r = await fetch(`${API_BASE}/barcode/scan`);
+              const d = await r.json();
+              if (d && d.barcode) onScanSuccess(d.barcode);
+            } catch (e) { }
+          }, 600);
+          scannerRunning = true;
+          cameraBtnText.textContent = 'Đóng camera';
+          scannerStatus.textContent = 'Đang quét qua Camera trực tiếp của Raspberry Pi...';
+        } catch (fallbackErr) {
+          scannerWrap.classList.remove('active');
+          cameraBtnText.textContent = 'Quét mã camera';
+          const errDetail = (err && (err.name || err.message)) ? `${err.name || ''} ${err.message || ''}`.trim() : String(err);
+          showToast(`Không thể mở camera: ${errDetail}. Camera server: ${fallbackErr.message || fallbackErr}`, 'danger');
+        }
+      } finally {
+        cameraToggleBtn.disabled = false;
+      }
+    }
+
+    async function stopScanner() {
+      if (window._adminBarcodePoll) {
+        clearInterval(window._adminBarcodePoll);
+        window._adminBarcodePoll = null;
+      }
+      const streamImg = document.getElementById('adminServerStreamImg');
+      if (streamImg) streamImg.src = '';
+      if (html5QrCode && scannerRunning) {
+        try { await html5QrCode.stop(); html5QrCode.clear(); } catch (err) { }
+      }
+      scannerRunning = false;
+      scannerWrap.classList.remove('active');
+      cameraBtnText.textContent = 'Quét mã camera';
+    }
+
+    function onScanSuccess(decodedText) {
+      const now = Date.now();
+      if (decodedText === lastScannedCode && (now - lastScannedAt) < SCAN_DEBOUNCE_MS) {
+        return;
+      }
+      lastScannedCode = decodedText;
+      lastScannedAt = now;
+
+      scannerStatus.innerHTML = `✓ Đã nhận diện mã: <strong class="mono">${escapeHtml(decodedText)}</strong>`;
+      showToast(`Đã quét mã: ${decodedText}`, 'info');
+
+      // Mở modal thêm sản phẩm và điền sẵn mã
+      openAddModal();
+      document.getElementById('newBarcode').value = decodedText;
+      document.getElementById('newName').focus();
+    }
+
+    cameraToggleBtn.onclick = () => {
+      if (scannerRunning) stopScanner(); else startScanner();
+    };
+
+    // =============================================================
+    // THEO DÕI YÊU CẦU TRỢ GIÚP TỪ XE HÀNG (POLLING)
+    // =============================================================
+    async function pollHelpRequest() {
+      if (!getAdminToken()) return;
+      try {
+        const res = await adminFetch(`${API_BASE}/admin/help-requests`);
+        if (!res.ok) return;
+        const helpRequests = await res.json();
+
+        const banner = document.getElementById('helpBanner');
+        const listEl = document.getElementById('helpList');
+
+        if (helpRequests.length > 0) {
+          banner.classList.add('active');
+          listEl.innerHTML = helpRequests.map(req => `
+        <div class="help-card-item">
+          <div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <strong style="font-size: 14.5px;">Xe #${escapeHtml(req.cart_id)}</strong>
+              <span class="badge badge-danger">Vị trí: ${escapeHtml(req.help_location || 'Chưa xác định')}</span>
+            </div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+              Thời gian gọi: <span class="mono">${escapeHtml(req.help_requested_at)}</span>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-sm" data-cart="${escapeHtml(req.cart_id)}" onclick="clearHelpRequest(this.dataset.cart)">
+            ✓ Đã giải quyết
+          </button>
+        </div>
+      `).join('');
+        } else {
+          banner.classList.remove('active');
+          listEl.innerHTML = '';
+        }
+      } catch (err) {
+        // Không làm gián đoạn giao diện khi poll lỗi nhẹ hoặc hết hạn phiên
+      }
+    }
+
+    async function clearHelpRequest(cartId) {
+      try {
+        const url = cartId ? `${API_BASE}/cart/${encodeURIComponent(cartId)}/help-request/clear` : `${API_BASE}/cart/help-request/clear`;
+        const res = await adminFetch(url, { method: 'POST' });
+        if (res.ok) {
+          showToast(`Đã đóng yêu cầu hỗ trợ của Xe #${cartId}`, 'success');
+          pollHelpRequest();
+        }
+      } catch (err) {
+        showToast('Lỗi khi cập nhật trạng thái hỗ trợ', 'danger');
+      }
+    }
+
+    // =============================================================
+    // XÁC MINH & KÍCH HOẠT WEBHOOK VỚI PAYOS
+    // =============================================================
+    async function confirmWebhook() {
+      let url = document.getElementById('webhookUrlInput').value.trim();
+      const msgEl = document.getElementById('webhookMsg');
+      const btn = document.getElementById('webhookSubmitBtn');
+
+      if (!url) {
+        msgEl.style.color = 'var(--danger)';
+        msgEl.textContent = 'Vui lòng nhập đầy đủ Webhook URL công khai (vd: https://abc.trycloudflare.com/api/payos-webhook)';
+        return;
+      }
+
+      // Tự động bổ sung đuôi /api/payos-webhook nếu người dùng chỉ dán tên miền
+      url = url.replace(/\/+$/, '');
+      if (!url.endsWith('/api/payos-webhook')) {
+        url = url + '/api/payos-webhook';
+        document.getElementById('webhookUrlInput').value = url;
+      }
+
+      btn.disabled = true;
+      msgEl.style.color = 'var(--text-muted)';
+      msgEl.textContent = 'Đang gửi thông tin đăng ký xác minh tới PayOS...';
+
+      try {
+        const res = await adminFetch(`${API_BASE}/admin/confirm-webhook`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ webhook_url: url })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          msgEl.style.color = 'var(--success)';
+          msgEl.textContent = '✓ ' + (data.message || 'Xác nhận Webhook thành công!');
+          showToast('Đăng ký Webhook PayOS thành công', 'success');
+        } else {
+          msgEl.style.color = 'var(--danger)';
+          msgEl.textContent = '✕ ' + (data.message || 'Lỗi từ PayOS');
+          showToast(data.message || 'Lỗi cấu hình Webhook', 'danger');
+        }
+      } catch (err) {
+        msgEl.style.color = 'var(--danger)';
+        msgEl.textContent = 'Không thể kết nối tới máy chủ Flask hoặc chưa đăng nhập';
+        showToast('Lỗi gửi yêu cầu tới server', 'danger');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    // Bật polling yêu cầu hỗ trợ (chỉ tạo 1 interval, gọi được từ cả lúc tải trang lẫn sau khi đăng nhập)
+    let helpPollTimer = null;
+    function startHelpPolling() {
+      if (helpPollTimer) return;
+      helpPollTimer = setInterval(pollHelpRequest, 3000);
+      pollHelpRequest();
+    }
+
+    // KHỞI CHẠY LẦN ĐẦU
+    initTheme();
+    if (!getAdminToken()) {
+      showLoginModal();
+    } else {
+      loadAdminData();
+      startHelpPolling();
+    }
+  </script>
+</body>
+
+</html>

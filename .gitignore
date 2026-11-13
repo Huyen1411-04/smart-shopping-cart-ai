@@ -1,0 +1,12 @@
+﻿.env
+__pycache__/
+*.pyc
+venv/
+.venv/
+uploads/temp/*
+uploads/members/*
+!uploads/temp/.gitkeep
+!uploads/members/.gitkeep
+
+*.log
+members_backup.json

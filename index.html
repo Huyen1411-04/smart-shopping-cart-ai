@@ -1,0 +1,5155 @@
+﻿<!DOCTYPE html>
+<html lang="vi" translate="no" class="notranslate">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="google" content="notranslate">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>SmartCart AI — Kiosk thông minh</title>
+  <script src="qrcode.min.js"></script>
+  <script src="barcode_scanner_min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap');
+
+    :root {
+      --bg: #F1F5F9;
+      --surface: #FFFFFF;
+      --surface-subtle: #F8FAFC;
+      --surface-card: #FFFFFF;
+      --line: #E2E8F0;
+      --line-active: #16A34A;
+      --text: #0F172A;
+      --muted: #64748B;
+      --text-light: #94A3B8;
+
+      /* Siêu thị / Bán lẻ thân thiện */
+      --primary: #16A34A;
+      --primary-hover: #15803D;
+      --primary-light: #F0FDF4;
+      --primary-border: #BBF7D0;
+
+      --accent: #16A34A;
+      --accent-dim: #DCFCE7;
+      --accent-gradient: linear-gradient(135deg, #16A34A 0%, #059669 100%);
+
+      --brand-blue: #2563EB;
+      --brand-blue-light: #EFF6FF;
+
+      --success: #16A34A;
+      --warn: #D97706;
+      --warn-light: #FFFBEB;
+      --danger: #DC2626;
+      --danger-light: #FEF2F2;
+
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+      --shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      height: 100%;
+      min-height: 100vh;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    #app {
+      width: 100%;
+      max-width: 800px;
+      height: 100vh;
+      max-height: 100vh;
+      margin: 0 auto;
+      background: var(--surface);
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.08);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Header Bar */
+    header {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--line);
+      background: #FFFFFF;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .header-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--primary);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      color: #FFF;
+      box-shadow: 0 2px 6px rgba(22, 163, 74, 0.25);
+    }
+
+    .header-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    .header-subtitle {
+      font-size: 10.5px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .header-cart-id {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      color: #334155;
+      background: #F1F5F9;
+      padding: 2px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--line);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #166534;
+      background: var(--primary-light);
+      padding: 4px 8px;
+      border-radius: 12px;
+      border: 1px solid var(--primary-border);
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--primary);
+      border-radius: 50%;
+    }
+
+    .btn-help {
+      background: #FFFFFF;
+      border: 1px solid var(--line);
+      color: #334155;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .btn-help:hover {
+      background: #F8FAFC;
+    }
+
+    /* Segmented Navigation Tabs */
+    .nav-tabs {
+      display: flex;
+      padding: 6px 8px;
+      gap: 4px;
+      background: #F8FAFC;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .nav-tab {
+      flex: 1;
+      text-align: center;
+      padding: 8px 4px;
+      border-radius: 8px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--muted);
+      background: transparent;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+
+    .nav-tab.active {
+      background: #FFFFFF;
+      color: var(--text);
+      border-color: #CBD5E1;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    }
+
+    .nav-tab .badge-count {
+      background: var(--primary);
+      color: #FFFFFF;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 8px;
+    }
+
+    /* Main Scrollable Content Area */
+    .content {
+      padding: 10px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow-y: auto;
+      background: #F8FAFC;
+    }
+
+    .tab-pane {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      animation: fadeIn 0.15s ease;
+    }
+
+    .tab-pane.active {
+      display: flex;
+    }
+
+    /* Section Styling */
+    .card-section {
+      background: #FFFFFF;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .section-label {
+      font-size: 13.5px;
+      color: var(--text);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .section-sub {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 400;
+    }
+
+    /* Universal Search Box */
+    .search-box-wrap {
+      position: relative;
+      margin-bottom: 8px;
+    }
+
+    .search-input-group {
+      display: flex;
+      align-items: center;
+      background: #FFFFFF;
+      border: 1.5px solid var(--line);
+      border-radius: 10px;
+      padding: 4px 10px;
+      transition: border-color 0.2s;
+    }
+
+    .search-input-group:focus-within {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.15);
+    }
+
+    .search-icon {
+      font-size: 14px;
+      margin-right: 6px;
+      color: var(--muted);
+    }
+
+    .search-input-group input {
+      background: none;
+      border: none;
+      color: var(--text);
+      flex: 1;
+      font-size: 13.5px;
+      outline: none;
+      padding: 6px 0;
+    }
+
+    .search-clear-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 14px;
+      cursor: pointer;
+      padding: 4px;
+      display: none;
+    }
+
+    /* Search Results Grid / List */
+    .search-results-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 380px;
+      overflow-y: auto;
+      margin-top: 6px;
+    }
+
+    .search-item {
+      background: #FFFFFF;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: border-color 0.15s;
+    }
+
+    .search-item:hover {
+      border-color: var(--primary);
+    }
+
+    .search-item-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .search-item-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .search-item-meta {
+      font-size: 11px;
+      color: var(--muted);
+      display: flex;
+      gap: 6px;
+      margin-top: 2px;
+    }
+
+    .search-item-price {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    /* Input Barcode & Camera Tools */
+    .quick-scan-row {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 6px;
+      background: #FFFFFF;
+      border: 1.5px solid var(--line);
+      border-radius: 10px;
+      padding: 3px 3px 3px 10px;
+      align-items: center;
+      flex: 1;
+    }
+
+    .input-group:focus-within {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.15);
+    }
+
+    .input-group input {
+      background: none;
+      border: none;
+      color: var(--text);
+      flex: 1;
+      font-size: 13px;
+      outline: none;
+    }
+
+    /* Buttons */
+    .btn {
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 12.5px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      transition: all 0.15s;
+      padding: 8px 14px;
+    }
+
+    .btn-sm {
+      padding: 6px 10px;
+      font-size: 11.5px;
+      border-radius: 6px;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #FFFFFF;
+      box-shadow: 0 1px 3px rgba(22, 163, 74, 0.3);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-ghost {
+      background: #FFFFFF;
+      color: #334155;
+      border: 1px solid var(--line);
+    }
+
+    .btn-ghost:hover {
+      background: #F8FAFC;
+    }
+
+    .btn-camera {
+      width: 100%;
+      border-radius: 8px;
+      padding: 9px;
+      margin-top: 6px;
+      font-weight: 600;
+    }
+
+    /* Scanner Wrap */
+    #scannerWrap {
+      margin-top: 8px;
+      border: 1.5px solid var(--primary);
+      border-radius: 10px;
+      padding: 8px;
+      background: #0F172A;
+    }
+
+    #scannerStatus {
+      font-size: 11.5px;
+      color: #94A3B8;
+      text-align: center;
+      margin-top: 6px;
+    }
+
+    /* Cart List & Items */
+    .cart-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .cart-item {
+      background: #FFFFFF;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: border-color 0.15s;
+    }
+
+    .cart-item:hover {
+      border-color: #CBD5E1;
+    }
+
+    .item-details {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .item-name {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+
+    .item-meta {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+      display: flex;
+      gap: 6px;
+    }
+
+    .item-price {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #0F172A;
+    }
+
+    .cart-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      border: 1.5px dashed var(--line);
+      border-radius: 12px;
+      padding: 30px 16px;
+      font-size: 12.5px;
+      text-align: center;
+      gap: 8px;
+      background: #FFFFFF;
+    }
+
+    /* Weight Verification Banner */
+    .weight-banner {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      border: 1px solid var(--line);
+      background: #FFFFFF;
+      color: var(--muted);
+      transition: all 0.2s;
+    }
+
+    .weight-banner.match {
+      border-color: var(--primary-border);
+      background: var(--primary-light);
+      color: #166534;
+      font-weight: 600;
+    }
+
+    .weight-banner.mismatch {
+      border-color: #FECACA;
+      background: var(--danger-light);
+      color: #991B1B;
+      font-weight: 600;
+    }
+
+    .weight-banner .weight-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      flex-shrink: 0;
+    }
+
+    /* Counter Tabs */
+    .counter-tabs {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      margin-bottom: 10px;
+      padding-bottom: 2px;
+      scrollbar-width: none;
+    }
+
+    .counter-tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .counter-tab {
+      flex-shrink: 0;
+      background: #FFFFFF;
+      border: 1px solid var(--line);
+      color: #475569;
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+
+    .counter-tab.active {
+      background: var(--primary);
+      color: #FFFFFF;
+      border-color: var(--primary);
+      box-shadow: 0 1px 3px rgba(22, 163, 74, 0.25);
+    }
+
+    .counter-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      background: #FFFFFF;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      margin-bottom: 6px;
+    }
+
+    .counter-item-info {
+      flex: 1;
+    }
+
+    .counter-item-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .counter-item-price {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .counter-item-weight {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    /* Summary Footer */
+    .summary-footer {
+      padding: 10px 14px;
+      border-top: 1px solid var(--line);
+      background: #FFFFFF;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      position: sticky;
+      bottom: 0;
+      z-index: 40;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .price-col {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .price-label {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .price-total {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 22px;
+      font-weight: 700;
+      color: #DC2626;
+      line-height: 1.1;
+    }
+
+    .btn-checkout {
+      flex: 1;
+      max-width: 200px;
+      padding: 12px;
+      font-size: 14px;
+      border-radius: 10px;
+      letter-spacing: 0.2px;
+      font-weight: 700;
+      transition: all 0.2s ease;
+    }
+
+    .btn-checkout.disabled-mismatch {
+      background: #DC2626 !important;
+      border-color: #B91C1C !important;
+      color: #FFFFFF !important;
+      box-shadow: 0 2px 8px rgba(220, 38, 38, 0.35) !important;
+    }
+
+    @keyframes bannerShake {
+
+      0%,
+      100% {
+        transform: translateX(0);
+      }
+
+      20%,
+      60% {
+        transform: translateX(-6px);
+      }
+
+      40%,
+      80% {
+        transform: translateX(6px);
+      }
+    }
+
+    .shake {
+      animation: bannerShake 0.4s ease-in-out;
+    }
+
+    /* Meal Recipe / Shopping Box */
+    .recipe-box {
+      background: #FFFFFF;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .recipe-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .recipe-sub {
+      font-size: 11.5px;
+      color: var(--muted);
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+
+    .recipe-chips-row {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      margin-bottom: 10px;
+      padding-bottom: 2px;
+      scrollbar-width: none;
+    }
+
+    .recipe-chips-row::-webkit-scrollbar {
+      display: none;
+    }
+
+    .recipe-tag {
+      background: #F1F5F9;
+      border: 1px solid #CBD5E1;
+      color: #334155;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 14px;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .recipe-tag:hover {
+      background: #E2E8F0;
+    }
+
+    .ai-empty {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+      text-align: center;
+      padding: 16px;
+    }
+
+    .recipe-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      padding: 8px 10px;
+      background: #F8FAFC;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+    }
+
+    /* Toast Notification */
+    .toast-container {
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 99999;
+      pointer-events: none;
+      width: calc(100% - 30px);
+      max-width: 440px;
+    }
+
+    .toast {
+      background: #1E293B;
+      border: 1px solid #334155;
+      color: #FFFFFF;
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-size: 12.5px;
+      font-weight: 600;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+      display: none;
+      text-align: center;
+      animation: fadeIn 0.15s ease;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    /* QR Payment Modal */
+    #qrModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      backdrop-filter: blur(4px);
+    }
+
+    .qr-box {
+      background: #FFFFFF;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+      max-width: 320px;
+      width: 100%;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .qr-box h3 {
+      font-size: 16px;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .qr-amount {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 22px;
+      color: #DC2626;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    #qrCanvas {
+      border-radius: 10px;
+      background: #fff;
+      padding: 8px;
+      margin: 0 auto;
+      display: block;
+      border: 1px solid var(--line);
+    }
+
+    #qrStatus {
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .qr-close-btn {
+      margin-top: 12px;
+      width: 100%;
+      padding: 8px;
+    }
+
+    /* Face recognition Modal */
+    #faceModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.65);
+      z-index: 1000;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 22px 12px 12px 12px;
+      backdrop-filter: blur(4px);
+    }
+
+    .face-modal-box {
+      background: #FFFFFF;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 16px 14px;
+      text-align: center;
+      max-width: 410px;
+      width: 100%;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.2);
+      position: relative;
+      overflow-y: auto;
+      max-height: 94vh;
+      animation: faceModalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes faceModalFadeIn {
+      from {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .face-guide-corner {
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      border-color: #38BDF8;
+      border-style: solid;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .face-guide-corner.tl {
+      top: 10px;
+      left: 10px;
+      border-width: 3px 0 0 3px;
+      border-top-left-radius: 6px;
+    }
+
+    .face-guide-corner.tr {
+      top: 10px;
+      right: 10px;
+      border-width: 3px 3px 0 0;
+      border-top-right-radius: 6px;
+    }
+
+    .face-guide-corner.bl {
+      bottom: 10px;
+      left: 10px;
+      border-width: 0 0 3px 3px;
+      border-bottom-left-radius: 6px;
+    }
+
+    .face-guide-corner.br {
+      bottom: 10px;
+      right: 10px;
+      border-width: 0 3px 3px 0;
+      border-bottom-right-radius: 6px;
+    }
+
+    .face-scan-line {
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #38BDF8, #0EA5E9, #38BDF8, transparent);
+      box-shadow: 0 0 8px #38BDF8;
+      pointer-events: none;
+      z-index: 2;
+      animation: scanLaserAnim 2.2s infinite ease-in-out;
+    }
+
+    @keyframes scanLaserAnim {
+      0% {
+        top: 12%;
+        opacity: 0.3;
+      }
+
+      50% {
+        top: 86%;
+        opacity: 1;
+      }
+
+      100% {
+        top: 12%;
+        opacity: 0.3;
+      }
+    }
+
+    /* Help Request Modal */
+    #helpModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.65);
+      z-index: 1001;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      backdrop-filter: blur(4px);
+    }
+
+    .help-modal-box {
+      background: #FFFFFF;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 20px 18px;
+      max-width: 380px;
+      width: 100%;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.18);
+      animation: helpModalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes helpModalFadeIn {
+      from {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .help-modal-header {
+      text-align: center;
+      margin-bottom: 14px;
+    }
+
+    .help-modal-icon {
+      width: 44px;
+      height: 44px;
+      background: #FEF3C7;
+      color: #D97706;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 8px auto;
+    }
+
+    .help-modal-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .help-modal-sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    .help-active-alert {
+      display: none;
+      background: #FEF3C7;
+      border: 1px solid #FDE68A;
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .help-active-title {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #92400E;
+    }
+
+    .help-active-location {
+      font-size: 13.5px;
+      font-weight: 800;
+      color: #B45309;
+      margin: 2px 0 6px 0;
+    }
+
+    .btn-help-cancel {
+      background: #FEE2E2;
+      border: 1px solid #FECACA;
+      color: #DC2626;
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .help-locations-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .help-loc-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 3px;
+      padding: 10px 12px;
+      background: #F8FAFC;
+      border: 1.5px solid #E2E8F0;
+      border-radius: 10px;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+
+    .help-loc-btn:hover,
+    .help-loc-btn:active {
+      background: #F0FDF4;
+      border-color: #16A34A;
+      transform: translateY(-1px);
+    }
+
+    .help-loc-icon-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #1E293B;
+    }
+
+    .help-loc-desc {
+      font-size: 10.5px;
+      color: #64748B;
+      line-height: 1.2;
+    }
+
+    .btn-help.active {
+      background: #FEF3C7 !important;
+      border-color: #F59E0B !important;
+      color: #B45309 !important;
+      animation: pulse-help-btn 1.4s infinite;
+    }
+
+    @keyframes pulse-help-btn {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.85;
+        transform: scale(0.98);
+      }
+    }
+
+    /* Virtual On-screen Keyboard */
+    .virtual-keyboard-drawer {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translate(-50%, 105%);
+      width: 100%;
+      max-width: 760px;
+      background: #E2E8F0;
+      border-top: 1.5px solid #CBD5E1;
+      border-radius: 16px 16px 0 0;
+      box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.15);
+      z-index: 10005;
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      padding: 8px 6px 12px 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      user-select: none;
+    }
+
+    .virtual-keyboard-drawer.active {
+      transform: translate(-50%, 0);
+    }
+
+    .vk-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #CBD5E1;
+    }
+
+    .vk-chips-scroll {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      flex: 1;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .vk-chips-scroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    .vk-chip {
+      background: #FFFFFF;
+      border: 1px solid #CBD5E1;
+      color: #334155;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+      flex-shrink: 0;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .vk-chip:active {
+      background: var(--primary);
+      color: #FFFFFF;
+    }
+
+    .vk-btn-close {
+      background: #CBD5E1;
+      border: none;
+      color: #475569;
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      cursor: pointer;
+      flex-shrink: 0;
+      font-weight: 700;
+    }
+
+    .vk-row {
+      display: flex;
+      gap: 4px;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .vk-key {
+      flex: 1;
+      height: 42px;
+      min-width: 0;
+      background: #FFFFFF;
+      border: 1px solid #CBD5E1;
+      border-radius: 6px;
+      color: #1E293B;
+      font-size: 15px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+      touch-action: manipulation;
+    }
+
+    .vk-key:active,
+    .vk-key.pressed {
+      background: #DCFCE7;
+      color: #166534;
+      border-color: #86EFAC;
+      transform: scale(0.95);
+    }
+
+    .vk-key.special {
+      background: #CBD5E1;
+      color: #334155;
+      font-size: 12px;
+      font-weight: 700;
+      flex: 1.3;
+      border-color: #94A3B8;
+    }
+
+    .vk-key.space {
+      flex: 3.5;
+      font-size: 12.5px;
+      color: #475569;
+    }
+
+    .vk-key.enter {
+      flex: 2;
+      background: var(--primary);
+      color: #FFFFFF;
+      border-color: var(--primary-hover);
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    /* =========== SmartCart AI Kiosk 2.0 | responsive and SVG-only icons =========== */
+    :root {
+      --bg: #eff8f2;
+      --surface: #fff;
+      --surface-subtle: #f6fbf7;
+      --surface-card: #fff;
+      --line: #dcebe0;
+      --line-active: #159747;
+      --text: #142b1c;
+      --muted: #657c6c;
+      --text-light: #95a99b;
+      --primary: #128c3c;
+      --primary-hover: #087a32;
+      --primary-light: #e8f8ec;
+      --primary-border: #c9ebd1;
+      --accent: #139946;
+      --accent-dim: #e9f7ef;
+      --accent-gradient: linear-gradient(125deg, #087033, #13994b 70%, #1fb65a);
+      --shadow-sm: 0 5px 14px rgba(17, 64, 33, .08);
+      --shadow: 0 12px 32px rgba(17, 64, 33, .09);
+    }
+
+    html,
+    body {
+      background: #ecf6ef;
+      font-family: 'Inter', Arial, 'Noto Sans', sans-serif;
+      width: 100%;
+      overflow-x: hidden;
+    }
+
+    #app {
+      width: 100%;
+      max-width: 800px;
+      min-height: 100vh;
+      margin: 0 auto;
+      background: #f5faf6;
+      box-shadow: 0 10px 40px rgba(15, 78, 34, .12);
+    }
+
+    header {
+      position: relative;
+      padding: 13px 15px;
+      background: linear-gradient(125deg, #087033, #0f8d42 72%, #1da85c);
+      border-bottom: none;
+      box-shadow: 0 6px 18px rgba(8, 98, 44, .17);
+    }
+
+    .header-brand {
+      min-width: 0;
+      gap: 9px;
+    }
+
+    .header-icon {
+      background: rgba(255, 255, 255, .15);
+      border: 1px solid rgba(255, 255, 255, .25);
+      box-shadow: none;
+      width: 39px;
+      height: 39px;
+      border-radius: 12px;
+    }
+
+    .header-title {
+      font-size: 17px;
+      letter-spacing: -.3px;
+      color: #fff;
+    }
+
+    .header-subtitle {
+      color: #d8f6df;
+      font-size: 10px;
+    }
+
+    .header-cart-id {
+      color: #fff;
+      background: rgba(255, 255, 255, .12);
+      border-color: rgba(255, 255, 255, .26);
+      font-size: 10px;
+    }
+
+    .status-pill {
+      color: #dbf9e6;
+      background: rgba(255, 255, 255, .12);
+      border-color: rgba(255, 255, 255, .24);
+    }
+
+    .status-dot {
+      background: #8cefaa;
+    }
+
+    .btn-help {
+      color: #fff;
+      background: rgba(255, 255, 255, .12);
+      border-color: rgba(255, 255, 255, .25);
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 6px;
+      padding: 9px 10px;
+      background: #fff;
+      border-bottom: 1px solid #dbeade;
+      overflow-x: auto;
+      scrollbar-width: none;
+      align-items: center;
+    }
+
+    .nav-tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .nav-tab {
+      display: inline-flex;
+      gap: 5px;
+      flex: 1 0 0;
+      min-width: 0;
+      padding: 9px 4px;
+      border: 1px solid #e6eee8;
+      background: #f7faf8;
+      border-radius: 12px;
+      font-size: 11px;
+      color: #627b6a;
+      font-weight: 700;
+      justify-content: center;
+      align-items: center;
+      white-space: nowrap;
+    }
+
+    .nav-tab svg {
+      width: 15px;
+      height: 15px;
+      flex-shrink: 0;
+    }
+
+    .nav-tab.active {
+      background: #10853a;
+      color: #fff;
+      border-color: #10853a;
+      box-shadow: 0 5px 14px rgba(12, 125, 52, .2);
+    }
+
+    .nav-tab.active .badge-count {
+      background: #fff;
+      color: #0b8438;
+    }
+
+    .badge-count {
+      font-size: 9px;
+    }
+
+    .content {
+      padding: 13px;
+      gap: 13px;
+      background: transparent;
+      overflow-y: auto;
+      min-height: 0;
+    }
+
+    .tab-pane {
+      gap: 12px;
+    }
+
+    .sc-home-hero {
+      position: relative;
+      background: linear-gradient(115deg, #f0fff3 0%, #d7f4e2 100%);
+      border: 1px solid #c5e9d0;
+      border-radius: 20px;
+      min-height: 204px;
+      padding: 19px 18px 15px;
+      box-shadow: 0 8px 22px rgba(20, 88, 44, .08);
+      overflow: hidden;
+    }
+
+    .sc-home-hero::before {
+      content: '';
+      position: absolute;
+      right: -45px;
+      top: -75px;
+      width: 250px;
+      height: 250px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(38, 174, 87, .17), transparent 70%);
+    }
+
+    .sc-hero-text {
+      position: relative;
+      z-index: 2;
+      width: 73%;
+    }
+
+    .sc-eyebrow {
+      font-size: 11px;
+      letter-spacing: .08em;
+      font-weight: 800;
+      color: #0b7535;
+    }
+
+    .sc-hero-text h1 {
+      font-size: 27px;
+      line-height: 1.16;
+      letter-spacing: -.8px;
+      margin: 7px 0 10px;
+      max-width: 370px;
+      color: #10351f;
+    }
+
+    .sc-hero-text p {
+      font-size: 11px;
+      line-height: 1.55;
+      color: #496b56;
+      max-width: 310px;
+    }
+
+    .sc-produce-art {
+      width: 125px;
+      height: 125px;
+      position: absolute;
+      right: 8px;
+      top: 26px;
+      z-index: 1;
+      filter: drop-shadow(0 7px 6px rgba(24, 116, 55, .12));
+    }
+
+    .sc-hero-search {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-top: 16px;
+      padding: 12px 14px;
+      width: 100%;
+      border: 1px solid #cce5d2;
+      border-radius: 13px;
+      background: #fff;
+      color: #6a8171;
+      font-size: 12px;
+      font-family: inherit;
+      position: relative;
+      z-index: 3;
+      text-align: left;
+      cursor: pointer;
+      box-shadow: 0 3px 10px rgba(20, 88, 44, .05);
+    }
+
+    .sc-hero-search svg {
+      width: 17px;
+      height: 17px;
+      flex-shrink: 0;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+    }
+
+    .sc-home-section-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: #183e25;
+      padding: 2px 3px 0;
+    }
+
+    .sc-quick-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .sc-quick-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: 119px;
+      min-width: 0;
+      padding: 15px 7px;
+      background: #fff;
+      border: 1px solid #dfece3;
+      border-radius: 17px;
+      box-shadow: 0 5px 16px rgba(18, 78, 34, .06);
+      font: inherit;
+      cursor: pointer;
+      text-align: center;
+      transition: transform .15s, box-shadow .15s;
+    }
+
+    .sc-quick-card:active {
+      transform: scale(.98);
+    }
+
+    .sc-quick-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 43px;
+      height: 43px;
+      border-radius: 14px;
+      background: #e7f8ec;
+      color: #138e43;
+    }
+
+    .sc-quick-icon svg,
+    .sc-vip-symbol svg,
+    .sc-register-new svg {
+      width: 24px;
+      height: 24px;
+      stroke: currentColor;
+      stroke-width: 1.9;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .sc-quick-card:nth-child(3) .sc-quick-icon {
+      background: #fff2d8;
+      color: #c38213;
+    }
+
+    .sc-quick-card strong {
+      font-size: 13px;
+      font-weight: 800;
+      color: #163b24;
+    }
+
+    .sc-quick-card small {
+      font-size: 10px;
+      color: #728575;
+    }
+
+    .sc-home-tip {
+      background: #f2fbf5;
+      border: 1px solid #cdebd6;
+      color: #52725c;
+      border-radius: 12px;
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      padding: 12px;
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .sc-tip-dot {
+      background: #149a4a;
+      width: 8px;
+      height: 8px;
+      flex: none;
+      border-radius: 50%;
+      margin-top: 4px;
+    }
+
+    .card-section,
+    .recipe-box {
+      background: #fff;
+      border: 1px solid #dfebe2;
+      border-radius: 18px;
+      box-shadow: 0 5px 17px rgba(17, 64, 33, .06);
+      padding: 15px;
+    }
+
+    .section-header {
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .section-label,
+    .recipe-header {
+      color: #183d28;
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .section-sub {
+      font-size: 10px;
+      text-align: right;
+      color: #718577;
+    }
+
+    .search-input-group,
+    .input-group {
+      border-radius: 13px;
+    }
+
+    .btn {
+      border-radius: 12px;
+    }
+
+    .btn-primary,
+    .btn-checkout {
+      background: linear-gradient(135deg, #0b8034, #18a54a);
+      border: none;
+      color: #fff;
+    }
+
+    .btn-ghost {
+      background: #f7faf8;
+      border: 1px solid #d8e8df;
+    }
+
+    .cart-item,
+    .counter-item,
+    .recipe-item {
+      border-radius: 13px;
+    }
+
+    .weight-banner {
+      border-radius: 13px;
+      padding: 12px;
+      background: #eefaf1;
+      border-color: #cce9d3;
+    }
+
+    .cart-empty {
+      background: #f9fcfa;
+      border: 1px dashed #d5e8dc;
+      border-radius: 16px;
+      padding: 24px 12px;
+    }
+
+    .recipe-box {
+      padding: 15px;
+    }
+
+    .recipe-header {
+      font-size: 17px;
+    }
+
+    .recipe-tag {
+      background: #e9f7ed;
+      border-color: #cce8d5;
+      color: #1b7f3c;
+      padding: 7px 10px;
+      border-radius: 99px;
+    }
+
+    .member-card {
+      border-radius: 16px;
+    }
+
+    .sc-vip-intro {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      background: linear-gradient(115deg, #fff5d7, #efc96f);
+      border-radius: 16px;
+      padding: 15px;
+      margin-bottom: 10px;
+      border: 1px solid #f0d08a;
+    }
+
+    .sc-vip-symbol {
+      width: 44px;
+      height: 44px;
+      border-radius: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, .62);
+      color: #ad7410;
+      flex: none;
+    }
+
+    .sc-vip-intro strong {
+      display: block;
+      font-size: 15px;
+      color: #583c07;
+      font-weight: 800;
+    }
+
+    .sc-vip-intro small {
+      display: block;
+      color: #8a671d;
+      font-size: 10px;
+      line-height: 1.5;
+      margin-top: 3px;
+    }
+
+    .sc-register-new {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      background: linear-gradient(120deg, #0a8135, #17a84d);
+      color: #fff;
+      padding: 13px;
+      border: none;
+      border-radius: 13px;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 800;
+      width: 100%;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+
+    .sc-register-new svg {
+      width: 19px;
+      height: 19px;
+    }
+
+    #memberRegistered>div {
+      background: linear-gradient(125deg, #e9b847, #f3d784) !important;
+      color: #5c3f08 !important;
+      box-shadow: 0 8px 23px rgba(166, 117, 24, .17) !important;
+    }
+
+    #memberRegistered #usePointsContainer {
+      border-top-color: rgba(101, 72, 16, .25) !important;
+    }
+
+    .summary-footer {
+      position: sticky;
+      bottom: 0;
+      background: #fff;
+      border-top: 1px solid #dceadf;
+      box-shadow: 0 -7px 21px rgba(20, 77, 37, .09);
+      padding: 12px 15px;
+    }
+
+    .price-total {
+      color: #0d8838;
+      font-size: 21px;
+    }
+
+    .btn-checkout {
+      border-radius: 14px;
+      max-width: 225px;
+      box-shadow: 0 7px 17px rgba(15, 128, 48, .19);
+    }
+
+    @media (max-width:520px) {
+      .header-subtitle {
+        font-size: 9px;
+      }
+
+      .header-cart-id {
+        display: none;
+      }
+
+      .status-pill {
+        padding: 5px 8px;
+        font-size: 10px;
+      }
+
+      .nav-tab {
+        flex-direction: column;
+        gap: 3px;
+        font-size: 9px;
+        min-height: 46px;
+      }
+
+      .nav-tab svg {
+        width: 16px;
+        height: 16px;
+      }
+
+      .nav-tab .badge-count {
+        display: none;
+      }
+
+      .sc-home-hero {
+        min-height: 214px;
+      }
+
+      .sc-hero-text {
+        width: 76%;
+      }
+
+      .sc-hero-text h1 {
+        font-size: 24px;
+      }
+
+      .sc-produce-art {
+        width: 98px;
+        right: 0;
+      }
+    }
+
+    /* =============================================================
+       TỐI ƯU HÓA CHO MÀN HÌNH KIOSK 7 INCH (800x480) & LANDSCAPE
+       ============================================================= */
+    @media (min-width: 650px) {
+
+      /* Header & Footer gọn gàng để tối đa hóa không gian nội dung (chiều cao 480px) */
+      header {
+        padding: 6px 14px;
+      }
+
+      .header-icon {
+        width: 28px;
+        height: 28px;
+        font-size: 14px;
+      }
+
+      .header-title {
+        font-size: 14px;
+      }
+
+      .header-subtitle {
+        font-size: 10px;
+      }
+
+      .header-cart-id {
+        font-size: 10px;
+        padding: 2px 7px;
+      }
+
+      .status-pill {
+        padding: 3px 8px;
+        font-size: 10.5px;
+      }
+
+      .btn-help {
+        padding: 3px 8px;
+        font-size: 10.5px;
+      }
+
+      .nav-tabs {
+        padding: 4px 10px;
+        gap: 6px;
+      }
+
+      .nav-tab {
+        flex-direction: row;
+        gap: 5px;
+        padding: 6px 10px;
+        font-size: 11px;
+        min-height: 34px;
+      }
+
+      .nav-tab svg {
+        width: 15px;
+        height: 15px;
+      }
+
+      .content {
+        padding: 8px 12px;
+        gap: 8px;
+        flex: 1;
+        overflow-y: auto;
+        min-height: 0;
+      }
+
+      .summary-footer {
+        padding: 6px 14px;
+      }
+
+      .price-label {
+        font-size: 10px;
+      }
+
+      .price-total {
+        font-size: 18px;
+      }
+
+      .btn-checkout {
+        padding: 8px 20px;
+        font-size: 13px;
+        border-radius: 10px;
+      }
+
+      /* TAB 1: TRANG CHỦ - Vừa khít toàn bộ màn hình 800x480 không cần cuộn */
+      .sc-home-hero {
+        min-height: 105px;
+        max-height: 125px;
+        padding: 10px 16px;
+        border-radius: 14px;
+      }
+
+      .sc-hero-text {
+        width: 72%;
+      }
+
+      .sc-eyebrow {
+        font-size: 9.5px;
+      }
+
+      .sc-hero-text h1 {
+        font-size: 17px;
+        margin: 2px 0 4px;
+        line-height: 1.2;
+      }
+
+      .sc-hero-text p {
+        font-size: 10.5px;
+        line-height: 1.35;
+        max-width: 480px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .sc-produce-art {
+        width: 80px;
+        height: 80px;
+        right: 14px;
+        top: 10px;
+      }
+
+      .sc-hero-search {
+        margin-top: 6px;
+        padding: 6px 12px;
+        font-size: 11px;
+        border-radius: 10px;
+      }
+
+      .sc-home-section-title {
+        font-size: 12px;
+        padding: 1px 2px;
+        margin-top: 2px;
+      }
+
+      /* 4 nút thao tác nhanh dàn đều 1 hàng 4 cột */
+      .sc-quick-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+      }
+
+      .sc-quick-card {
+        min-height: 70px;
+        padding: 8px 6px;
+        border-radius: 12px;
+        gap: 3px;
+      }
+
+      .sc-quick-card .sc-quick-icon svg {
+        width: 18px;
+        height: 18px;
+      }
+
+      .sc-quick-card strong {
+        font-size: 11.5px;
+      }
+
+      .sc-quick-card small {
+        font-size: 9.5px;
+      }
+
+      .sc-home-tip {
+        padding: 4px 10px;
+        font-size: 10.5px;
+      }
+
+      /* TAB 2: GIỎ HÀNG - Chia 2 cột: Quét/Cân bên trái, Giỏ hàng bên phải */
+      #tabCart.tab-pane.active {
+        display: grid;
+        grid-template-columns: 310px 1fr;
+        gap: 8px;
+        align-items: start;
+        height: 100%;
+      }
+
+      #tabCart>.card-section:first-child {
+        grid-column: 1;
+        grid-row: 1;
+        padding: 10px;
+      }
+
+      #tabCart>#weightBanner {
+        grid-column: 1;
+        grid-row: 2;
+        padding: 7px 10px;
+        font-size: 11.5px;
+      }
+
+      #tabCart>.card-section:last-child {
+        grid-column: 2;
+        grid-row: 1 / span 2;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 150px);
+        max-height: 330px;
+      }
+
+      #tabCart .cart-list {
+        flex: 1;
+        overflow-y: auto;
+        max-height: 270px;
+        padding-right: 2px;
+      }
+
+      .cart-item {
+        padding: 7px 10px;
+      }
+
+      .cart-empty {
+        padding: 20px 10px;
+      }
+
+      /* TAB 3: TRA CỨU - Hiển thị kết quả & quầy hàng dạng lưới 2 cột */
+      #searchResultsList {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+        max-height: 220px;
+      }
+
+      #counterProducts {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+        max-height: 190px;
+        overflow-y: auto;
+      }
+
+      .counter-item {
+        margin-bottom: 0;
+        padding: 6px 10px;
+      }
+
+      .counter-tabs {
+        margin-bottom: 6px;
+      }
+
+      /* TAB 4: GỢI Ý MÓN ĂN - 2 cột danh sách nguyên liệu */
+      .recipe-items-list {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+        max-height: 180px;
+        overflow-y: auto;
+      }
+
+      /* TAB 5: THÀNH VIÊN VIP */
+      #memberUnregistered {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        align-items: center;
+      }
+
+      /* BÀN PHÍM ẢO CẢM ỨNG & CÁC MODAL HỘP THOẠI TRÊN MÀN HÌNH 480PX */
+      .virtual-keyboard-drawer {
+        max-width: 760px;
+        padding: 6px 10px 8px;
+      }
+
+      .vk-key {
+        height: 38px;
+        font-size: 14px;
+      }
+
+      .qr-box,
+      .face-modal-box,
+      .help-modal-box {
+        max-height: 92vh;
+        overflow-y: auto;
+      }
+
+      #faceCameraWrap {
+        height: 175px !important;
+        width: 220px !important;
+        margin-bottom: 8px !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="app">
+    <!-- Header Bar -->
+    <header>
+      <div class="header-top">
+        <div class="header-brand">
+          <div class="header-icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="9" cy="21" r="1"></circle>
+              <circle cx="20" cy="21" r="1"></circle>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+            </svg>
+          </div>
+          <div>
+            <div class="header-title">SmartCart AI</div>
+            <div class="header-subtitle">Mua sắm thông minh hơn</div>
+          </div>
+          <span class="header-cart-id" id="cartIdDisplay">XE-01</span>
+        </div>
+        <div class="header-actions">
+          <div class="status-pill">
+            <span class="status-dot"></span>
+            <span>Sẵn sàng</span>
+          </div>
+          <button class="btn-help" id="headerHelpBtn" onclick="openHelpModal()"><svg width="13" height="13"
+              viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg> <span id="helpBtnLabel">Hỗ trợ</span></button>
+        </div>
+      </div>
+    </header>
+
+    <!-- SmartCart AI: các màn hình vận hành độc lập -->
+    <div class="nav-tabs" aria-label="Điều hướng SmartCart">
+      <button class="nav-tab active" data-tab="tabHome" type="button"><svg viewBox="0 0 24 24" width="16" height="16"
+          fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          aria-hidden="true">
+          <path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1V10Z" />
+        </svg><span>Trang chủ</span></button>
+
+      <button class="nav-tab" data-tab="tabCart">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="9" cy="21" r="1"></circle>
+          <circle cx="20" cy="21" r="1"></circle>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+        </svg> Giỏ hàng <span class="badge-count" id="cartCountBadge">0</span>
+      </button>
+      <button class="nav-tab" data-tab="tabSearch">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg> Quầy hàng
+      </button>
+      <button class="nav-tab" data-tab="tabRecipe">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+          <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+          <line x1="6" y1="1" x2="6" y2="4"></line>
+          <line x1="10" y1="1" x2="10" y2="4"></line>
+          <line x1="14" y1="1" x2="14" y2="4"></line>
+        </svg> Gợi ý AI
+      </button>
+      <button class="nav-tab" data-tab="tabMember">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+          <line x1="2" y1="10" x2="22" y2="10"></line>
+        </svg> Thẻ VIP
+      </button>
+    </div>
+
+    <div class="content">
+      <!-- TRANG CHỦ RIÊNG: không trộn quét hàng và danh sách giỏ vào màn hình đầu -->
+      <div class="tab-pane active" id="tabHome">
+        <section class="sc-home-hero" aria-label="Chào mừng đến SmartCart AI">
+          <div class="sc-hero-text">
+            <span class="sc-eyebrow">XIN CHÀO!</span>
+            <h1>Mua sắm thông minh hơn với AI</h1>
+            <p>Tìm sản phẩm, nhận gợi ý nấu ăn và thanh toán thuận tiện trên xe đẩy.</p>
+          </div>
+          <svg class="sc-produce-art" viewBox="0 0 144 136" aria-hidden="true">
+            <ellipse cx="73" cy="121" rx="60" ry="8" fill="#0E6A36" opacity=".10" />
+            <path d="M43 77c-7-17-2-37 17-50-5 22 1 31 7 40" fill="#46B96B" />
+            <path d="M74 68c-2-25 11-44 33-51-5 24-10 37-23 51" fill="#1D9B50" />
+            <path d="M62 78C44 67 30 60 17 63c12 12 21 22 38 25" fill="#78CE7F" />
+            <path d="M50 57c8 9 17 19 23 32" stroke="#12793A" fill="none" stroke-width="2" opacity=".6" />
+            <path d="M80 83c8-18 29-22 42-11 21 19 13 51-12 56-24 4-46-17-30-45" fill="#FF6D4F" />
+            <path d="m90 72 12-10 6 9 12-5-5 14-14-5-9 8Z" fill="#2DAF56" />
+            <circle cx="96" cy="95" r="5" fill="#FFAE96" opacity=".8" />
+            <path d="M47 91c-1-17-24-23-32-9-7 11-2 30 16 42 13-8 20-21 16-33" fill="#FFC13F" />
+            <path d="M32 83c-5-11-1-17 6-19" stroke="#217B3E" fill="none" stroke-width="4" stroke-linecap="round" />
+          </svg>
+          <button class="sc-hero-search" type="button"
+            onclick="switchToTab('tabSearch'); document.getElementById('productSearchInput')?.focus();">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" />
+              <path d="m16 16 5 5" />
+            </svg>
+            <span>Tìm sản phẩm hoặc món ăn...</span>
+          </button>
+        </section>
+        <div class="sc-home-section-title">Bạn muốn làm gì hôm nay?</div>
+        <div class="sc-quick-grid">
+          <button class="sc-quick-card" type="button"
+            onclick="switchToTab('tabCart'); document.getElementById('cameraToggleBtn')?.click();"><span
+              class="sc-quick-icon"><svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M5 3H3v6m16-6h2v6M5 21H3v-6m16 6h2v-6M7 8v8m3-8v8m3-8v8m3-8v8M8 5h8M8 19h8" />
+              </svg></span><strong>Quét sản phẩm</strong><small>Mã vạch & camera</small></button>
+          <button class="sc-quick-card" type="button" onclick="switchToTab('tabRecipe')"><span
+              class="sc-quick-icon"><svg viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="m12 2 2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4L12 2ZM20 19l-1 2-1-2-2-1 2-1 1-2 1 2 2 1-2 1Z" />
+              </svg></span><strong>AI gợi ý món</strong><small>Tìm nguyên liệu nấu ăn</small></button>
+          <button class="sc-quick-card" type="button" onclick="switchToTab('tabMember')"><span
+              class="sc-quick-icon"><svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 8 6 16h12l3-8-6 4-3-7-3 7-6-4Zm3 12h12" />
+                <circle cx="3" cy="6" r="1" />
+                <circle cx="12" cy="4" r="1" />
+                <circle cx="21" cy="6" r="1" />
+              </svg></span><strong>Thẻ thành viên</strong><small>Đăng ký & tích điểm</small></button>
+          <button class="sc-quick-card" type="button" onclick="switchToTab('tabCart')"><span class="sc-quick-icon"><svg
+                viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="9" cy="20" r="1" />
+                <circle cx="19" cy="20" r="1" />
+                <path d="M2 3h3l3 12h12l2-9H6M8 17h12" />
+              </svg></span><strong>Giỏ hàng</strong><small>Xem & thanh toán</small></button>
+        </div>
+        <div class="sc-home-tip"><span class="sc-tip-dot"></span><span>Quét mã vạch để thêm sản phẩm; sau đó kiểm tra
+            giỏ hàng và khối lượng trước khi thanh toán.</span></div>
+      </div>
+
+
+      <!-- TAB 1: GIỎ HÀNG (MAIN CART) -->
+      <div class="tab-pane" id="tabCart">
+        <!-- Quick Barcode Scan Section -->
+        <div class="card-section">
+          <div class="section-header">
+            <div class="section-label">Quét sản phẩm</div>
+            <span class="section-sub">Tự động nhận diện vào giỏ</span>
+          </div>
+          <div class="quick-scan-row">
+            <div class="input-group">
+              <input type="text" id="barcodeInput" placeholder="Nhập mã vạch sản phẩm (13 số)...">
+              <button class="btn btn-primary btn-sm" id="addBtn">+ Thêm</button>
+            </div>
+          </div>
+          <button class="btn btn-ghost btn-camera" id="cameraToggleBtn"><svg width="15" height="15" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+              <circle cx="12" cy="13" r="4"></circle>
+            </svg> Mở Camera Quét Mã</button>
+          <div id="scannerWrap" style="display:none;">
+            <img id="barcodeStreamImg" style="width:100%; border-radius:8px;" alt="Camera đang quét mã vạch">
+            <div id="scannerStatus">Đưa mã vạch vào giữa khung hình camera...</div>
+          </div>
+        </div>
+
+        <!-- Weight Verification Banner -->
+        <div class="weight-banner" id="weightBanner">
+          <span class="weight-dot"></span>
+          <span id="weightBannerText">Đang kết nối cảm biến cân giỏ hàng...</span>
+        </div>
+
+        <!-- Cart Items List -->
+        <div class="card-section">
+          <div class="section-header">
+            <div class="section-label">Giỏ hàng của bạn</div>
+          </div>
+          <div class="cart-list" id="cartList">
+            <div class="cart-empty">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.6"
+                stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="9" cy="21" r="1"></circle>
+                <circle cx="20" cy="21" r="1"></circle>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+              </svg>
+              <div style="font-weight: 600; color: #334155; margin-top: 4px;">Giỏ hàng đang trống</div>
+              <div style="font-size: 11.5px; color: #64748B;">Quét mã vạch hoặc chọn ở mục Quầy Hàng để thêm đồ vào giỏ.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: TÌM KIẾM SẢN PHẨM & QUẦY HÀNG -->
+      <div class="tab-pane" id="tabSearch">
+        <!-- Live Search Box -->
+        <div class="card-section">
+          <div class="section-header">
+            <div class="section-label">Tra Cứu Sản Phẩm</div>
+            <span class="section-sub">Tìm theo tên hoặc mã vạch</span>
+          </div>
+          <div class="search-box-wrap">
+            <div class="search-input-group">
+              <span class="search-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg></span>
+              <input type="text" id="productSearchInput" placeholder="Nhập tên sản phẩm (vd: Sữa, Bánh, Nước ngọt...)"
+                autocomplete="off">
+              <button type="button" class="btn btn-ghost btn-sm" id="searchKbBtn"
+                style="padding: 2px 6px; font-size: 13px; border: none; background: transparent; color: var(--primary); cursor: pointer;"
+                title="Bật bàn phím ảo">⌨</button>
+              <button class="search-clear-btn" id="searchClearBtn">✕</button>
+            </div>
+          </div>
+          <!-- Live Search Results Container -->
+          <div id="searchResultsWrap" style="display: none;">
+            <div style="font-size: 11.5px; color: var(--muted); margin-bottom: 6px; font-weight: 600;">KẾT QUẢ TÌM KIẾM:
+            </div>
+            <div class="search-results-list" id="searchResultsList"></div>
+          </div>
+        </div>
+
+        <!-- Supermarket Counters Catalog -->
+        <div class="card-section">
+          <div class="section-header">
+            <div class="section-label">Danh Mục Quầy Hàng Siêu Thị</div>
+          </div>
+          <div class="counter-tabs" id="counterTabs"></div>
+          <div id="counterProducts">
+            <div class="ai-empty">Đang tải danh sách hàng hóa trên quầy kệ...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: THỰC ĐƠN & GỢI Ý MUA SẮM (RECIPE SHOPPING) -->
+      <div class="tab-pane" id="tabRecipe">
+        <div class="recipe-box">
+          <div class="recipe-header">
+            <span>AI gợi ý nguyên liệu</span>
+          </div>
+          <div class="recipe-sub">
+            Nhập món ăn bạn dự định nấu, hệ thống sẽ tự động tra cứu danh sách nguyên liệu và kiểm tra hàng có sẵn trên
+            quầy kệ siêu thị.
+          </div>
+
+          <div class="recipe-chips-row">
+            <span class="recipe-tag"
+              onclick="document.getElementById('dishInput').value='Phở bò'; suggestIngredients();">Phở bò</span>
+            <span class="recipe-tag"
+              onclick="document.getElementById('dishInput').value='Canh chua cá lóc'; suggestIngredients();">Canh
+              chua</span>
+            <span class="recipe-tag"
+              onclick="document.getElementById('dishInput').value='Thịt kho tàu'; suggestIngredients();">Thịt kho
+              tàu</span>
+            <span class="recipe-tag"
+              onclick="document.getElementById('dishInput').value='Lẩu thái hải sản'; suggestIngredients();">Lẩu
+              thái</span>
+            <span class="recipe-tag"
+              onclick="document.getElementById('dishInput').value='Gà chiên nước mắm'; suggestIngredients();">Gà chiên
+              mắm</span>
+            <span class="recipe-tag"
+              onclick="document.getElementById('dishInput').value='Súp bí đỏ'; suggestIngredients();">Súp bí đỏ</span>
+          </div>
+
+          <div style="display: flex; gap: 6px; margin-bottom: 10px; align-items: stretch;">
+            <div class="input-group" style="flex: 1;">
+              <input type="text" id="dishInput" placeholder="Nhập tên món ăn (vd: Phở bò, Canh chua)..."
+                autocomplete="off">
+              <button type="button" class="btn btn-ghost btn-sm" id="dishKbBtn"
+                style="color: var(--primary); font-size: 14px; padding: 2px 6px; border: none; background: transparent; cursor: pointer;"
+                title="Bật bàn phím ảo">⌨</button>
+            </div>
+            <button class="btn btn-primary btn-sm" id="dishSuggestBtn" style="padding: 0 12px;">Tìm nguyên liệu</button>
+          </div>
+
+          <div id="aiResults">
+            <div class="ai-empty">Nhập tên món ăn hoặc bấm vào các gợi ý ở trên để xem danh sách nguyên liệu cần mua.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: THẺ THÀNH VIÊN VIP & TÍCH ĐIỂM -->
+      <div class="tab-pane" id="tabMember">
+        <div class="card-section" id="memberBox">
+          <div class="section-header">
+            <div class="section-label">Thẻ thành viên SmartCart</div>
+            <span class="section-sub">Tích lũy 2% giá trị hóa đơn</span>
+          </div>
+          <div class="member-card" id="memberCard">
+            <div id="memberUnregistered">
+              <div class="sc-vip-intro"><span class="sc-vip-symbol"><svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M3 8 6 16h12l3-8-6 4-3-7-3 7-6-4Zm3 12h12" />
+                    <circle cx="3" cy="6" r="1" />
+                    <circle cx="12" cy="4" r="1" />
+                    <circle cx="21" cy="6" r="1" />
+                  </svg></span>
+                <div><strong>Gia nhập SmartCart VIP</strong><small>Đăng ký miễn phí · Tích điểm cho mỗi hóa đơn</small>
+                </div>
+              </div>
+              <button class="sc-register-new" type="button"
+                onclick="document.getElementById('faceScanBtn')?.click();"><svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M3 8 6 16h12l3-8-6 4-3-7-3 7-6-4Zm3 12h12" />
+                  <circle cx="3" cy="6" r="1" />
+                  <circle cx="12" cy="4" r="1" />
+                  <circle cx="21" cy="6" r="1" />
+                </svg><span>Đăng ký thành viên mới</span></button>
+              <div style="display: flex; flex-direction: column; gap: 8px;">
+                <button class="btn btn-primary" id="faceScanBtn"
+                  style="background: #1E40AF; color: white; width: 100%; padding: 11px; font-size: 13px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600;">
+                  Nhận Diện Bằng Khuôn Mặt VIP
+                </button>
+                <div style="text-align: center; font-size: 11.5px; color: var(--muted); margin: 2px 0;">— hoặc nhập số
+                  điện thoại —</div>
+                <div style="display: flex; gap: 6px;">
+                  <input type="text" id="memberPhoneInput" placeholder="Số điện thoại thành viên..."
+                    style="flex: 1; background: #FFFFFF; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; color: var(--text); font-size: 13px; outline: none;">
+                  <button class="btn btn-ghost btn-sm" id="applyPhoneBtn"
+                    style="padding: 8px 12px; font-weight: 600;">Áp dụng</button>
+                </div>
+                <!-- Khung thông minh mời quét mặt đăng ký khi SĐT chưa có trong CSDL -->
+                <div id="memberRegisterPrompt"
+                  style="display: none; background: #EFF6FF; border: 1.5px solid #93C5FD; border-radius: 10px; padding: 12px; margin-top: 4px;">
+                  <div
+                    style="font-weight: 700; color: #1E40AF; font-size: 13px; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="8.5" cy="7" r="4"></circle>
+                      <line x1="20" y1="8" x2="20" y2="14"></line>
+                      <line x1="23" y1="11" x2="17" y2="11"></line>
+                    </svg>
+                    Khách Hàng Mới Chưa Có Thẻ!
+                  </div>
+                  <div style="font-size: 12px; color: #1E3A8A; margin-bottom: 10px; line-height: 1.4;">
+                    Số điện thoại <strong id="promptPhoneDisplay" style="color: #2563EB;"></strong> chưa đăng ký. Khách
+                    hàng mới cần <strong>quét khuôn mặt kết hợp với số điện thoại</strong> để kích hoạt Thẻ VIP và tích
+                    lũy 2%.
+                  </div>
+                  <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-primary" id="openFaceScanForPhoneBtn"
+                      style="flex: 1; padding: 10px; font-weight: 700; font-size: 13px; background: #2563EB; border: none; cursor: pointer;">
+                      📸 Quét Khuôn Mặt Để Đăng Ký
+                    </button>
+                    <button class="btn btn-ghost" id="cancelRegisterPhoneBtn"
+                      style="padding: 10px 14px; font-size: 12px; border: 1px solid #CBD5E1; background: #FFF; cursor: pointer;">
+                      Hủy
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div id="memberRegistered" style="display: none;">
+              <div
+                style="background: linear-gradient(135deg, #064E3B 0%, #047857 100%); border-radius: 12px; padding: 14px; box-shadow: 0 4px 12px rgba(6, 78, 59, 0.25); color: #FFF; position: relative;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <div
+                    style="font-size: 20px; background: rgba(255, 255, 255, 0.15); width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+                      <line x1="2" y1="10" x2="22" y2="10"></line>
+                    </svg>
+                  </div>
+                  <div style="flex: 1;">
+                    <div style="font-size: 12.5px; font-weight: 700; letter-spacing: 0.5px;">THẺ THÀNH VIÊN THÂN THIẾT
+                    </div>
+                    <div class="mono" id="memberPhoneDisplay"
+                      style="font-size: 12px; opacity: 0.9; margin: 2px 0 4px 0;">
+                    </div>
+                    <div style="display: flex; gap: 12px; font-size: 11.5px;">
+                      <div>Điểm hiện có: <strong id="memberPointsDisplay" style="color: #FDE047;">0</strong></div>
+                      <div>Tích đơn này: <strong id="memberPointsEarned" style="color: #FDE047;">+0</strong></div>
+                    </div>
+                  </div>
+                  <button class="btn btn-ghost" id="logoutMemberBtn"
+                    style="border: none; background: rgba(255, 255, 255, 0.2); color: #FFF; padding: 6px 10px; font-size: 11.5px; border-radius: 6px; cursor: pointer;">Hủy</button>
+                </div>
+
+                <!-- TÙY CHỌN SỬ DỤNG ĐIỂM TÍCH LŨY (100 điểm = 100đ) -->
+                <div id="usePointsContainer"
+                  style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: space-between;">
+                  <label
+                    style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 12px; font-weight: 600; user-select: none;">
+                    <input type="checkbox" id="usePointsCheckbox"
+                      style="width: 17px; height: 17px; accent-color: #FDE047; cursor: pointer;">
+                    <span>Dùng điểm thanh toán (100đ = 100 điểm)</span>
+                  </label>
+                  <span id="pointsDiscountPreview"
+                    style="font-size: 12.5px; font-weight: 700; color: #FDE047;">-0₫</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Summary Sticky Footer -->
+    <div class="summary-footer">
+      <div class="price-col">
+        <div id="pointsDiscountBadge"
+          style="display: none; font-size: 11px; color: #16A34A; font-weight: 600; margin-bottom: 2px;">
+          Tạm tính: <span id="subtotalDisplay">0₫</span> • Giảm điểm: <span id="discountDisplay">-0₫</span>
+        </div>
+        <span class="price-label">Tổng thanh toán</span>
+        <span class="price-total" id="totalPrice">0₫</span>
+      </div>
+      <button class="btn btn-primary btn-checkout" id="checkoutBtn">THANH TOÁN →</button>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast-container">
+      <div class="toast" id="toastBox">Thông báo hệ thống</div>
+    </div>
+  </div>
+
+  <!-- Modal Thông Báo Thanh Toán Thành Công -->
+  <div id="successModal"
+    style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.65); z-index: 2000; align-items: center; justify-content: center; padding: 16px; backdrop-filter: blur(4px);">
+    <div
+      style="background: #FFFFFF; border-radius: 16px; padding: 20px 18px; text-align: center; max-width: 350px; width: 100%; max-height: 94vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.2); animation: slideUp 0.2s ease;">
+
+      <div
+        style="width: 48px; height: 48px; background: #DCFCE7; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px auto;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="3"
+          stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </div>
+
+      <h2 style="font-size: 16.5px; font-weight: 700; color: #0F172A; margin-bottom: 3px;">
+        Thanh Toán Thành Công!</h2>
+      <div style="font-size: 11.5px; color: #64748B; margin-bottom: 12px;">Cảm ơn quý khách đã mua sắm tại Smart Cart
+      </div>
+
+      <div
+        style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; text-align: left; display: flex; flex-direction: column; gap: 5px;">
+        <div style="display: flex; justify-content: space-between; font-size: 12px;" id="successSubtotalRow">
+          <span style="color: #64748B;">Tổng tiền hàng:</span>
+          <span id="successSubtotalAmount" style="font-family: 'JetBrains Mono', monospace; color: #334155;">0₫</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px; display: none;"
+          id="successPointsUsedRow">
+          <span style="color: #64748B;">Điểm đã dùng:</span>
+          <strong id="successPointsUsed" style="color: #2563EB; font-weight: 700;">-0 điểm</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px;">
+          <span style="color: #64748B;">Số tiền thực trả:</span>
+          <strong id="successPaidAmount"
+            style="font-family: 'JetBrains Mono', monospace; color: #16A34A; font-weight: 700;">0₫</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px;" id="successPointsRow">
+          <span style="color: #64748B;">Điểm tích lũy mới:</span>
+          <strong id="successEarnedPoints" style="color: #D97706; font-weight: 700;">+0 điểm</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 11px;">
+          <span style="color: #64748B;">Mã giao dịch:</span>
+          <span id="successOrderId" style="font-family: 'JetBrains Mono', monospace; color: #334155;">#0</span>
+        </div>
+      </div>
+
+      <!-- Khu vực Gửi Hóa Đơn Điện Tử qua Gmail -->
+      <div id="emailInvoiceSection"
+        style="background: #F8FAFC; border: 1px dashed #CBD5E1; border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; text-align: left;">
+        <label for="customerEmailInput"
+          style="display: flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; color: #334155; margin-bottom: 6px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+            <polyline points="22,6 12,13 2,6"></polyline>
+          </svg>
+          Nhận hóa đơn điện tử qua Gmail:
+        </label>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <input type="email" id="customerEmailInput" placeholder="nhap.email@gmail.com"
+            onkeydown="if(event.key === 'Enter') sendInvoiceEmail()"
+            style="flex: 1; min-width: 0; padding: 7px 10px; font-size: 12px; border: 1px solid #CBD5E1; border-radius: 8px; outline: none; background: #FFFFFF; font-family: inherit;" />
+          <button type="button" id="emailKbBtn"
+            style="padding: 6px 9px; font-size: 13.5px; border: 1px solid #CBD5E1; border-radius: 8px; background: #F8FAFC; color: #475569; cursor: pointer; display: flex; align-items: center; justify-content: center; height: 32px;"
+            title="Bật bàn phím ảo">⌨</button>
+          <button id="btnSendEmailInvoice" type="button" onclick="sendInvoiceEmail()"
+            style="padding: 7px 14px; font-size: 12px; border-radius: 8px; background: #2563EB; color: #FFFFFF; border: none; font-weight: 600; cursor: pointer; white-space: nowrap; transition: background 0.15s ease; height: 32px;">
+            Gửi
+          </button>
+        </div>
+        <div id="emailSendStatus" style="font-size: 11px; margin-top: 5px; display: none; line-height: 1.35;"></div>
+      </div>
+
+      <button class="btn btn-primary" style="width: 100%; padding: 10px; font-size: 13px; border-radius: 8px;"
+        onclick="closeSuccessModal()">
+        Hoàn Tất Mua Sắm
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal QR Code PayOS -->
+  <div id="qrModal">
+    <div class="qr-box">
+      <h3>Quét mã để thanh toán</h3>
+      <div class="qr-amount" id="qrAmount">0₫</div>
+      <canvas id="qrCanvas"></canvas>
+      <img id="qrImage" alt="Mã QR Thanh Toán"
+        style="display: none; border-radius: 10px; background: #fff; padding: 8px; margin: 0 auto; width: 200px; height: 200px;" />
+      <div id="qrStatus">⏳ Đang chờ hệ thống xác nhận...</div>
+      <button class="btn btn-ghost qr-close-btn" onclick="closeQrModal(true)">Đóng</button>
+    </div>
+  </div>
+
+  <!-- Modal Nhận diện khuôn mặt -->
+  <div id="faceModal">
+    <div class="face-modal-box">
+      <h3 style="font-size: 16px; margin-bottom: 6px; color: var(--text); font-weight: 700;">Nhận Diện Khuôn Mặt VIP
+      </h3>
+      <div
+        style="font-size: 12.5px; color: #1E3A8A; background: #EFF6FF; border: 1.5px solid #93C5FD; border-radius: 10px; padding: 8px 12px; margin-bottom: 10px; line-height: 1.4; text-align: center;">
+        <div style="font-weight: 700; color: #1D4ED8; font-size: 13.5px; margin-bottom: 3px;">
+          👁️ Vui lòng nhìn thẳng vào camera
+        </div>
+        <div style="font-size: 11px; color: #4B5563;">
+          (Tháo khẩu trang, kính râm, mũ che mặt và đứng cách camera 40–60cm)
+        </div>
+      </div>
+
+      <div id="faceCameraWrap"
+        style="position: relative; width: 290px; height: 250px; margin: 0 auto 12px auto; border-radius: 18px; overflow: hidden; border: 2.5px solid var(--primary); box-shadow: 0 4px 16px rgba(14, 165, 233, 0.2); background: #0F172A; transition: width 0.3s ease, height 0.3s ease, border-radius 0.3s ease;">
+        <div class="face-guide-corner tl"></div>
+        <div class="face-guide-corner tr"></div>
+        <div class="face-guide-corner bl"></div>
+        <div class="face-guide-corner br"></div>
+        <div class="face-scan-line"></div>
+        <video id="faceVideo" style="display:none;"></video>
+        <img id="faceStreamImg" style="width: 100%; height: 100%; object-fit: cover;" alt="Camera đang quét khuôn mặt">
+        <div id="countdownOverlay"
+          style="position: absolute; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; font-size: 52px; font-weight: 800; color: white; opacity: 0; transition: opacity 0.2s; z-index: 3;">
+          3</div>
+      </div>
+
+      <div id="faceStatus"
+        style="font-size: 13px; color: #2563EB; margin-bottom: 12px; min-height: 20px; font-weight: 700; text-align: center;">
+        👀 Vui lòng nhìn thẳng vào camera...
+      </div>
+
+      <div id="faceRetryActions" style="display: none; margin-bottom: 12px;">
+        <button class="btn btn-primary" id="retryFaceBtn" type="button"
+          style="width: 100%; padding: 11px; font-weight: 700; font-size: 13.5px; background: #2563EB; border: none; cursor: pointer;">
+          🔄 Thử Quét Lại Khuôn Mặt
+        </button>
+      </div>
+
+      <div id="newMemberForm"
+        style="display: none; background: #F8FAFC; padding: 12px; border-radius: 12px; margin-bottom: 12px; border: 1.5px solid #CBD5E1;">
+        <div style="font-size: 13px; color: var(--primary); font-weight: 700; margin-bottom: 4px;">Khách hàng mới!</div>
+        <div style="font-size: 11.5px; color: var(--muted); margin-bottom: 8px;">Nhập số điện thoại để đăng ký tích điểm
+          2%.</div>
+        <input type="tel" id="newMemberPhone" placeholder="Nhập số điện thoại (10 số)..." maxlength="11"
+          style="width: 100%; background: #FFFFFF; border: 2px solid var(--primary); border-radius: 8px; padding: 10px; color: var(--text); font-size: 16px; font-weight: 700; text-align: center; outline: none; margin-bottom: 10px; letter-spacing: 1px; cursor: pointer;">
+        <button class="btn btn-primary" id="submitNewMemberBtn"
+          style="width: 100%; padding: 11px; font-weight: 700; font-size: 14px; cursor: pointer;">Đăng Ký Thành
+          Viên</button>
+      </div>
+
+      <div style="display: flex; gap: 8px;">
+        <button class="btn btn-ghost" id="cancelFaceBtn" style="flex: 1; padding: 9px; font-weight: 600;">Hủy
+          bỏ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Chọn Vị Trí Khi Gọi Hỗ Trợ -->
+  <div id="helpModal">
+    <div class="help-modal-box">
+      <div class="help-modal-header">
+        <div class="help-modal-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+          </svg>
+        </div>
+        <div class="help-modal-title">Cần Nhân Viên Hỗ Trợ?</div>
+        <div class="help-modal-sub">Vui lòng chọn quầy / khu vực bạn đang đứng để nhân viên đến hỗ trợ ngay</div>
+      </div>
+
+      <!-- Cảnh báo khi đã có yêu cầu đang hoạt động -->
+      <div class="help-active-alert" id="helpActiveAlert">
+        <div class="help-active-title" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+          </svg>
+          Đã thông báo cho nhân viên siêu thị
+        </div>
+        <div class="help-active-location" id="helpActiveLocation">Quầy rau củ</div>
+        <button type="button" class="btn-help-cancel" onclick="cancelHelpRequest()">Hủy yêu cầu gọi hỗ trợ</button>
+      </div>
+
+      <!-- Danh mục các quầy hàng để khách chọn -->
+      <div class="help-locations-grid">
+        <button type="button" class="help-loc-btn" onclick="submitHelpRequest('Quầy rau củ')">
+          <span class="help-loc-icon-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2a9 9 0 0 1 9 9c0 4.97-4.03 9-9 9a9 9 0 0 1-9-9c0-4.97 4.03-9 9-9z"></path>
+              <path d="M12 2v20"></path>
+              <path d="M12 7a5 5 0 0 1 5 5"></path>
+            </svg>
+            Quầy Rau Củ
+          </span>
+          <span class="help-loc-desc">Rau xanh, củ, quả tươi</span>
+        </button>
+        <button type="button" class="help-loc-btn" onclick="submitHelpRequest('Quầy đồ uống')">
+          <span class="help-loc-icon-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+              <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+              <line x1="6" y1="1" x2="6" y2="4"></line>
+              <line x1="10" y1="1" x2="10" y2="4"></line>
+              <line x1="14" y1="1" x2="14" y2="4"></line>
+            </svg>
+            Quầy Đồ Uống
+          </span>
+          <span class="help-loc-desc">Nước ngọt, bia, sữa tươi</span>
+        </button>
+        <button type="button" class="help-loc-btn" onclick="submitHelpRequest('Quầy bánh kẹo')">
+          <span class="help-loc-icon-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"></path>
+              <path d="M12 16a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"></path>
+              <path d="M16 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"></path>
+              <path d="M8 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"></path>
+            </svg>
+            Quầy Bánh Kẹo
+          </span>
+          <span class="help-loc-desc">Bánh snack, kẹo, đồ khô</span>
+        </button>
+        <button type="button" class="help-loc-btn" onclick="submitHelpRequest('Quầy đồ đông lạnh')">
+          <span class="help-loc-icon-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0891B2" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="2" x2="12" y2="22"></line>
+              <line x1="2" y1="12" x2="22" y2="12"></line>
+              <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+              <line x1="19.07" y1="4.93" x2="4.93" y2="19.07"></line>
+            </svg>
+            Đồ Đông Lạnh
+          </span>
+          <span class="help-loc-desc">Thịt cá, hải sản, xúc xích</span>
+        </button>
+        <button type="button" class="help-loc-btn" onclick="submitHelpRequest('Khu vực thu ngân')">
+          <span class="help-loc-icon-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9333EA" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+              <line x1="1" y1="10" x2="23" y2="10"></line>
+            </svg>
+            Quầy Thu Ngân
+          </span>
+          <span class="help-loc-desc">Cổng ra, quầy thanh toán</span>
+        </button>
+        <button type="button" class="help-loc-btn" onclick="submitHelpRequest('Vị trí khác')">
+          <span class="help-loc-icon-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+              <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+            Vị Trí Khác
+          </span>
+          <span class="help-loc-desc">Đang đi dạo quanh siêu thị</span>
+        </button>
+      </div>
+
+      <div style="display: flex; gap: 8px;">
+        <button type="button" class="btn btn-ghost" style="flex: 1; padding: 10px; font-weight: 600;"
+          onclick="closeHelpModal()">Đóng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BÀN PHÍM ẢO CẢM ỨNG KIOSK (ON-SCREEN VIRTUAL KEYBOARD) -->
+  <div id="virtualKeyboard" class="virtual-keyboard-drawer">
+    <div class="vk-header">
+      <div id="vkPhoneTitle"
+        style="display: none; flex: 1; font-size: 13px; font-weight: 700; color: #334155; padding-left: 6px;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+          stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;">
+          <rect x="3" y="3" width="18" height="18" rx="2" />
+          <path d="M7 8h.01" />
+          <path d="M12 8h.01" />
+          <path d="M17 8h.01" />
+          <path d="M7 12h.01" />
+          <path d="M12 12h.01" />
+          <path d="M17 12h.01" />
+          <path d="M7 16h.01" />
+          <path d="M12 16h.01" />
+          <path d="M17 16h.01" />
+        </svg> Bàn phím số điện thoại
+      </div>
+      <div class="vk-chips-scroll" id="vkChipsBar">
+        <span class="vk-chip" onclick="vkPickSuggestion('Phở bò')">Phở bò</span>
+        <span class="vk-chip" onclick="vkPickSuggestion('Canh chua cá lóc')">Canh chua</span>
+        <span class="vk-chip" onclick="vkPickSuggestion('Thịt kho tàu')">Thịt kho tàu</span>
+        <span class="vk-chip" onclick="vkPickSuggestion('Lẩu thái hải sản')">Lẩu thái</span>
+        <span class="vk-chip" onclick="vkPickSuggestion('Bò kho')">Bò kho</span>
+        <span class="vk-chip" onclick="vkPickSuggestion('Gà chiên nước mắm')">Gà chiên mắm</span>
+        <span class="vk-chip" onclick="vkPickSuggestion('Súp bí đỏ')">Súp bí đỏ</span>
+      </div>
+      <button class="vk-btn-close" onclick="closeVirtualKeyboard()" title="Đóng bàn phím">✕</button>
+    </div>
+    <div class="vk-body" id="vkKeysContainer" style="display: flex; flex-direction: column; gap: 4px;"></div>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const _rawCartId = urlParams.get('cart_id') || 'default';
+    const cartId = /^[A-Za-z0-9_-]{1,32}$/.test(_rawCartId) ? _rawCartId : 'default';
+    const API_BASE = '/api';
+    const CART_API_BASE = cartId === 'default' ? `${API_BASE}/cart` : `${API_BASE}/cart/${encodeURIComponent(cartId)}`;
+
+    let cartItems = [];
+    let currentOrderId = null;
+    let currentCancelToken = null;
+    let activeMember = null;
+
+    // Định dạng tiền tệ VND chuẩn (không có số 0 ở đầu, không có phần thập phân thừa)
+    function money(num) {
+      const val = Math.round(Number(num) || 0);
+      return val.toLocaleString('vi-VN') + '₫';
+    }
+
+    // Chống tấn công XSS khi render dữ liệu động hoặc phản hồi từ AI vào HTML
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    // Switch Segmented Nav Tabs
+    function switchToTab(tabId) {
+      document.querySelectorAll('.nav-tab').forEach(t => {
+        t.classList.toggle('active', t.dataset.tab === tabId);
+      });
+      document.querySelectorAll('.tab-pane').forEach(p => {
+        p.classList.toggle('active', p.id === tabId);
+      });
+    }
+
+    document.querySelectorAll('.nav-tab').forEach(tabBtn => {
+      tabBtn.addEventListener('click', () => {
+        switchToTab(tabBtn.dataset.tab);
+      });
+    });
+
+    // Hiển thị Toast thông báo
+    function showToast(msg) {
+      const box = document.getElementById('toastBox');
+      box.textContent = msg;
+      box.style.display = 'block';
+      setTimeout(() => { box.style.display = 'none'; }, 3000);
+    }
+
+    // LocalStorage cart persistence
+    function saveCart() { localStorage.setItem('smart_cart', JSON.stringify(cartItems)); }
+    function loadCart() {
+      const saved = localStorage.getItem('smart_cart');
+      if (saved) { cartItems = JSON.parse(saved); }
+    }
+
+    // Tính toán lại tổng tiền sau khi áp dụng điểm tích lũy (100 điểm = 100đ <=> 1 điểm = 1đ)
+    function updateCartTotals(subtotal = null) {
+      if (subtotal === null) {
+        subtotal = cartItems.reduce((sum, item) => sum + (Number(item.price) || 0) * (item.quantity || 1), 0);
+      }
+      const totalEl = document.getElementById('totalPrice');
+      const subtotalEl = document.getElementById('subtotalDisplay');
+      const discountEl = document.getElementById('discountDisplay');
+      const pointsBadgeEl = document.getElementById('pointsDiscountBadge');
+      const previewEl = document.getElementById('pointsDiscountPreview');
+      const usePointsCb = document.getElementById('usePointsCheckbox');
+
+      let discountAmount = 0;
+      let pointsToUse = 0;
+      const availPts = (activeMember && activeMember.points) ? Number(activeMember.points) : 0;
+
+      if (activeMember && usePointsCb && usePointsCb.checked && availPts > 0 && subtotal > 0) {
+        // Tỷ lệ: 100 điểm = 100đ <=> 1 điểm = 1đ
+        pointsToUse = Math.min(availPts, Math.floor(subtotal));
+        discountAmount = pointsToUse * 1.0;
+      }
+
+      const finalTotal = Math.max(0, subtotal - discountAmount);
+
+      if (previewEl) {
+        if (activeMember && availPts > 0 && subtotal > 0) {
+          const maxPts = Math.min(availPts, Math.floor(subtotal));
+          previewEl.textContent = `-${money(maxPts)}`;
+        } else {
+          previewEl.textContent = '-0₫';
+        }
+      }
+
+      if (discountAmount > 0) {
+        if (subtotalEl) subtotalEl.textContent = money(subtotal);
+        if (discountEl) discountEl.textContent = `-${money(discountAmount)}`;
+        if (pointsBadgeEl) pointsBadgeEl.style.display = 'block';
+      } else {
+        if (pointsBadgeEl) pointsBadgeEl.style.display = 'none';
+      }
+
+      if (totalEl) totalEl.textContent = money(finalTotal);
+
+      if (typeof updateLoyaltyEarnedPoints === 'function') {
+        updateLoyaltyEarnedPoints(finalTotal);
+      }
+    }
+
+    // Render danh sách sản phẩm trong giỏ hàng
+    function renderCart() {
+      const listEl = document.getElementById('cartList');
+      const totalEl = document.getElementById('totalPrice');
+      const badgeEl = document.getElementById('cartCountBadge');
+
+      const totalQty = cartItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
+      badgeEl.textContent = totalQty;
+
+      if (cartItems.length === 0) {
+        listEl.innerHTML = `
+        <div class="cart-empty">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+          <div style="font-weight: 600; color: #334155; margin-top: 4px;">Giỏ hàng đang trống</div>
+          <div style="font-size: 11.5px; color: #64748B;">Quét mã vạch hoặc chọn ở mục Quầy Hàng để thêm đồ vào giỏ.</div>
+        </div>`;
+        updateCartTotals(0);
+        return;
+      }
+
+      listEl.innerHTML = '';
+      let total = 0;
+      cartItems.forEach((item, index) => {
+        const qty = item.quantity || 1;
+        const itemSubtotal = (Number(item.price) || 0) * qty;
+        total += itemSubtotal;
+        const row = document.createElement('div');
+        row.className = 'cart-item';
+        row.innerHTML = `
+        <div class="item-details" style="flex: 1; min-width: 0;">
+          <div class="item-name" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(item.name)}</div>
+          <div class="item-meta">
+            <span>Mã: ${escapeHtml(item.code)}</span>
+            ${item.weight ? `<span>• ${(item.weight * qty)}g</span>` : ''}
+            <span>• ${money(item.price)}/sp</span>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 4px; margin: 0 8px;">
+          <button class="btn btn-ghost btn-sm" style="width: 28px; height: 28px; padding: 0; display: flex; align-items: center; justify-content: center; font-weight: 700; border-radius: 8px;" onclick="decreaseQty(${index})">-</button>
+          <span style="font-weight: 700; font-size: 13.5px; min-width: 22px; text-align: center;">${qty}</span>
+          <button class="btn btn-ghost btn-sm" style="width: 28px; height: 28px; padding: 0; display: flex; align-items: center; justify-content: center; font-weight: 700; border-radius: 8px;" onclick="increaseQty(${index})">+</button>
+        </div>
+        <div class="item-price" style="min-width: 65px; text-align: right; font-weight: 700;">${money(itemSubtotal)}</div>
+        <button class="btn btn-ghost btn-sm" style="padding: 6px 8px; margin-left: 6px; color: var(--danger); border-color: rgba(239,68,68,0.2);" onclick="removeItem(${index})">✕</button>
+      `;
+        listEl.appendChild(row);
+      });
+      updateCartTotals(total);
+    }
+
+    // Tăng/giảm số lượng sản phẩm
+    window.increaseQty = function (idx) {
+      if (cartItems[idx]) {
+        cartItems[idx].quantity = (cartItems[idx].quantity || 1) + 1;
+        saveCart();
+        renderCart();
+        syncExpectedWeight();
+      }
+    };
+
+    window.decreaseQty = function (idx) {
+      if (cartItems[idx]) {
+        if ((cartItems[idx].quantity || 1) > 1) {
+          cartItems[idx].quantity -= 1;
+        } else {
+          cartItems.splice(idx, 1);
+        }
+        saveCart();
+        renderCart();
+        syncExpectedWeight();
+      }
+    };
+
+    // Xóa toàn bộ dòng sản phẩm khỏi giỏ hàng
+    window.removeItem = function (idx) {
+      cartItems.splice(idx, 1);
+      saveCart();
+      renderCart();
+      syncExpectedWeight();
+      showToast('Đã xóa sản phẩm khỏi giỏ hàng');
+    };
+
+    // Gọi API lấy sản phẩm dựa trên mã vạch (hỗ trợ số lượng tùy biến theo định lượng AI)
+    async function fetchProduct(barcode, addQty = 1) {
+      barcode = barcode ? barcode.trim() : '';
+      if (!barcode) return;
+      addQty = parseInt(addQty, 10);
+      if (isNaN(addQty) || addQty < 1) addQty = 1;
+
+      try {
+        const res = await fetch(`${API_BASE}/products/${barcode}`);
+        if (!res.ok) {
+          showToast('❌ Không tìm thấy sản phẩm này trong kho!');
+          return;
+        }
+        const p = await res.json();
+
+        // Kiểm tra xem sản phẩm đã có trong giỏ hàng chưa
+        const existing = cartItems.find(item => item.code === p.barcode);
+        if (existing) {
+          existing.quantity = (existing.quantity || 1) + addQty;
+          showToast(`✓ Đã tăng số lượng: ${p.name} (+${addQty} → x${existing.quantity})`);
+        } else {
+          cartItems.push({
+            code: p.barcode,
+            name: p.name,
+            price: Math.round(Number(p.price) || 0),
+            weight: Number(p.weight) || 0,
+            quantity: addQty
+          });
+          showToast(addQty > 1 ? `✓ Đã thêm ${addQty}x: ${p.name}` : `✓ Đã thêm: ${p.name}`);
+        }
+
+        saveCart();
+        renderCart();
+        syncExpectedWeight();
+      } catch (err) {
+        showToast('⚠️ Lỗi kết nối đến máy chủ Flask!');
+      }
+    }
+
+    // Thêm nhanh bằng mã vạch từ danh sách tìm kiếm
+    window.addProductByBarcode = function (barcode) {
+      fetchProduct(barcode);
+      switchToTab('tabCart');
+    };
+
+    // =============================================================
+    // CHỨC NĂNG TÌM KIẾM SẢN PHẨM TRỰC TIẾP
+    // =============================================================
+    const searchInput = document.getElementById('productSearchInput');
+    const searchClearBtn = document.getElementById('searchClearBtn');
+    const searchResultsWrap = document.getElementById('searchResultsWrap');
+    const searchResultsList = document.getElementById('searchResultsList');
+
+    let searchDebounceTimeout = null;
+
+    async function performProductSearch(query) {
+      query = query.trim();
+      if (!query) {
+        searchResultsWrap.style.display = 'none';
+        searchClearBtn.style.display = 'none';
+        return;
+      }
+      searchClearBtn.style.display = 'block';
+      searchResultsWrap.style.display = 'block';
+      searchResultsList.innerHTML = '<div class="ai-empty">🔍 Đang tìm kiếm sản phẩm...</div>';
+
+      try {
+        const res = await fetch(`${API_BASE}/products/search?q=${encodeURIComponent(query)}`);
+        const products = await res.json();
+
+        if (!products || products.length === 0) {
+          searchResultsList.innerHTML = '<div class="ai-empty">Không tìm thấy sản phẩm nào khớp với từ khóa này.</div>';
+          return;
+        }
+
+        searchResultsList.innerHTML = products.map(p => `
+        <div class="search-item">
+          <div class="search-item-info">
+            <div class="search-item-title">${escapeHtml(p.name)}</div>
+            <div class="search-item-meta">
+              <span>${escapeHtml(p.counter || 'Quầy hàng')}</span>
+              ${p.weight ? `<span>• ${p.weight}g</span>` : ''}
+              <span>• Mã: ${escapeHtml(p.barcode)}</span>
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <div class="search-item-price">${money(p.price)}</div>
+            <button class="btn btn-primary btn-sm" style="margin-top: 4px;" data-barcode="${escapeHtml(p.barcode)}" onclick="addProductByBarcode(this.dataset.barcode)">+ Thêm</button>
+          </div>
+        </div>
+      `).join('');
+      } catch (err) {
+        searchResultsList.innerHTML = '<div class="ai-empty">⚠️ Lỗi khi kết nối tìm kiếm sản phẩm.</div>';
+      }
+    }
+
+    searchInput.addEventListener('input', (e) => {
+      clearTimeout(searchDebounceTimeout);
+      searchDebounceTimeout = setTimeout(() => {
+        performProductSearch(e.target.value);
+      }, 200);
+    });
+
+    searchClearBtn.addEventListener('click', () => {
+      searchInput.value = '';
+      searchResultsWrap.style.display = 'none';
+      searchClearBtn.style.display = 'none';
+    });
+
+    // =============================================================
+    // QUÉT MÃ VẠCH BẰNG CAMERA
+    // =============================================================
+    let html5QrCode = null;
+    let scannerRunning = false;
+    let lastScannedCode = null;
+    let lastScannedAt = 0;
+    const SCAN_DEBOUNCE_MS = 2500;
+
+    const cameraToggleBtn = document.getElementById('cameraToggleBtn');
+    const scannerWrap = document.getElementById('scannerWrap');
+    const scannerStatus = document.getElementById('scannerStatus');
+    const barcodeStreamImg = document.getElementById('barcodeStreamImg');
+    let barcodePollInterval = null;
+
+    async function pollBarcode() {
+      try {
+        const res = await fetch(`${API_BASE}/barcode/scan`);
+        const data = await res.json();
+        if (data.barcode) {
+          const now = Date.now();
+          if (data.barcode === lastScannedCode && (now - lastScannedAt) < SCAN_DEBOUNCE_MS) return;
+          lastScannedCode = data.barcode;
+          lastScannedAt = now;
+          scannerStatus.textContent = `✓ Đã quét: ${data.barcode}`;
+          fetchProduct(data.barcode);
+        }
+      } catch (err) { /* bỏ qua lỗi tạm thời của 1 lần poll */ }
+    }
+
+    // Ảnh GIF 1x1 trong suốt: gán vào <img> để ngắt luồng MJPEG mà không phát sinh request mới
+    const BLANK_IMG = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+
+    function startScanner() {
+      if (scannerRunning) return;
+      scannerRunning = true;
+      scannerWrap.style.display = 'block';
+      // Cache-buster để trình duyệt luôn mở lại stream mới (tránh giữ stream cũ khi bật/tắt nhiều lần)
+      barcodeStreamImg.src = `${API_BASE}/camera/stream?t=${Date.now()}`;
+      cameraToggleBtn.textContent = '⏹️ Tắt Camera';
+      scannerStatus.textContent = 'Đưa mã vạch vào giữa khung hình...';
+      barcodePollInterval = setInterval(pollBarcode, 600);
+    }
+
+    function stopScanner() {
+      scannerRunning = false;
+      if (barcodePollInterval) clearInterval(barcodePollInterval);
+      barcodePollInterval = null;
+      barcodeStreamImg.src = BLANK_IMG;
+      scannerWrap.style.display = 'none';
+      cameraToggleBtn.textContent = '📷 Bật Camera Quét Mã';
+    }
+
+    cameraToggleBtn.onclick = () => {
+      if (scannerRunning) stopScanner(); else startScanner();
+    };
+
+
+    // =============================================================
+    // XÁC MINH KHỐI LƯỢNG GIỎ HÀNG
+    // =============================================================
+    async function syncExpectedWeight() {
+      try {
+        await fetch(`${CART_API_BASE}/expected-weight`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            items: cartItems.map(item => ({
+              weight: item.weight || 0,
+              price: item.price || 0,
+              quantity: item.quantity || 1
+            }))
+          })
+        });
+      } catch (err) { }
+    }
+
+    let latestWeightStatus = null;
+
+    function updateWeightBanner(status) {
+      latestWeightStatus = status;
+      const banner = document.getElementById('weightBanner');
+      const text = document.getElementById('weightBannerText');
+      const checkoutBtn = document.getElementById('checkoutBtn');
+
+      if (cartItems.length === 0) {
+        banner.className = 'weight-banner';
+        text.textContent = 'Giỏ hàng trống — chưa cần xác minh khối lượng.';
+        if (checkoutBtn) {
+          checkoutBtn.classList.remove('disabled-mismatch');
+          checkoutBtn.textContent = 'THANH TOÁN →';
+        }
+        return;
+      }
+
+      if (status.is_match) {
+        banner.className = 'weight-banner match';
+        text.textContent = `✓ Khối lượng khớp (Cân: ${status.measured_weight.toFixed(0)}g / Chuẩn: ${status.expected_weight.toFixed(0)}g)`;
+        if (checkoutBtn) {
+          checkoutBtn.classList.remove('disabled-mismatch');
+          checkoutBtn.textContent = 'THANH TOÁN →';
+        }
+      } else {
+        banner.className = 'weight-banner mismatch';
+        const diffText = status.difference > 0 ? `dư ${status.difference.toFixed(0)}g` : `thiếu ${Math.abs(status.difference).toFixed(0)}g`;
+        text.textContent = `! Cảnh báo: Lệch khối lượng (${diffText}) — hãy kiểm tra lại giỏ!`;
+        if (checkoutBtn) {
+          checkoutBtn.classList.add('disabled-mismatch');
+          checkoutBtn.textContent = 'LỆCH KHỐI LƯỢNG !';
+        }
+      }
+    }
+
+    function pollWeightStatus() {
+      setInterval(async () => {
+        try {
+          const res = await fetch(`${CART_API_BASE}/weight-status`);
+          if (!res.ok) return;
+          const status = await res.json();
+          updateWeightBanner(status);
+          syncHelpButtonStatus(status);
+        } catch (err) { }
+      }, 2000);
+    }
+
+    // =============================================================
+    // YÊU CẦU NHÂN VIÊN HỖ TRỢ THEO VỊ TRÍ QUẦY
+    // =============================================================
+    const helpModal = document.getElementById('helpModal');
+    const headerHelpBtn = document.getElementById('headerHelpBtn');
+    const helpBtnLabel = document.getElementById('helpBtnLabel');
+    const helpActiveAlert = document.getElementById('helpActiveAlert');
+    const helpActiveLocation = document.getElementById('helpActiveLocation');
+    let isHelpActive = false;
+    let currentHelpLocation = null;
+
+    function openHelpModal() {
+      if (isHelpActive && currentHelpLocation) {
+        if (helpActiveAlert) helpActiveAlert.style.display = 'block';
+        if (helpActiveLocation) helpActiveLocation.textContent = `Vị trí: ${currentHelpLocation}`;
+      } else {
+        if (helpActiveAlert) helpActiveAlert.style.display = 'none';
+      }
+      if (helpModal) helpModal.style.display = 'flex';
+    }
+
+    function closeHelpModal() {
+      if (helpModal) helpModal.style.display = 'none';
+    }
+
+    async function submitHelpRequest(location) {
+      try {
+        const res = await fetch(`${CART_API_BASE}/help-request`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ location: location })
+        });
+        if (res.ok) {
+          isHelpActive = true;
+          currentHelpLocation = location;
+          if (headerHelpBtn) headerHelpBtn.classList.add('active');
+          if (helpBtnLabel) helpBtnLabel.textContent = `Chờ NV (${location})`;
+          showToast(`✓ Đã gửi yêu cầu nhân viên tới ${location}!`);
+          closeHelpModal();
+        } else {
+          showToast('! Không thể gửi yêu cầu hỗ trợ lúc này');
+        }
+      } catch (err) {
+        showToast('! Lỗi kết nối tới máy chủ!');
+      }
+    }
+
+    async function cancelHelpRequest() {
+      try {
+        const res = await fetch(`${CART_API_BASE}/help-request/clear`, {
+          method: 'POST'
+        });
+        if (res.ok) {
+          isHelpActive = false;
+          currentHelpLocation = null;
+          if (headerHelpBtn) headerHelpBtn.classList.remove('active');
+          if (helpBtnLabel) helpBtnLabel.textContent = 'Hỗ trợ';
+          showToast('✓ Đã hủy yêu cầu gọi hỗ trợ');
+          closeHelpModal();
+        }
+      } catch (err) {
+        showToast('! Lỗi kết nối khi hủy hỗ trợ');
+      }
+    }
+
+    function syncHelpButtonStatus(status) {
+      if (!status) return;
+      if (status.help_requested) {
+        isHelpActive = true;
+        currentHelpLocation = status.help_location || 'Chưa xác định';
+        if (headerHelpBtn) headerHelpBtn.classList.add('active');
+        if (helpBtnLabel) helpBtnLabel.textContent = `Chờ NV (${currentHelpLocation})`;
+      } else {
+        if (isHelpActive) {
+          isHelpActive = false;
+          currentHelpLocation = null;
+          if (headerHelpBtn) headerHelpBtn.classList.remove('active');
+          if (helpBtnLabel) helpBtnLabel.textContent = 'Hỗ trợ';
+          showToast('✓ Nhân viên đã tiếp nhận hỗ trợ cho bạn!');
+        }
+      }
+    }
+
+    if (helpModal) {
+      helpModal.addEventListener('click', (e) => {
+        if (e.target === helpModal) closeHelpModal();
+      });
+    }
+
+    // Thêm thủ công
+    document.getElementById('addBtn').onclick = () => {
+      const input = document.getElementById('barcodeInput');
+      fetchProduct(input.value);
+      input.value = '';
+      input.focus();
+    };
+
+    document.getElementById('barcodeInput').onkeydown = (e) => {
+      if (e.key === 'Enter') {
+        fetchProduct(e.target.value);
+        e.target.value = '';
+      }
+    };
+
+    // =============================================================
+    // PAYOS QR PAYMENT MODAL
+    // =============================================================
+    let pollingInterval = null;
+
+    document.getElementById('checkoutBtn').onclick = async () => {
+      if (cartItems.length === 0) { showToast('Giỏ hàng đang trống'); return; }
+
+      // Chặn thanh toán nếu giỏ hàng bị lệch khối lượng
+      if (latestWeightStatus && !latestWeightStatus.is_match) {
+        const diffText = latestWeightStatus.difference > 0
+          ? `dư ${latestWeightStatus.difference.toFixed(0)}g`
+          : `thiếu ${Math.abs(latestWeightStatus.difference).toFixed(0)}g`;
+        showToast(`! Lệch khối lượng (${diffText}) — Vui lòng kiểm tra lại hàng trong giỏ!`);
+
+        // Hiệu ứng rung thanh cảnh báo khối lượng để thu hút sự chú ý
+        const banner = document.getElementById('weightBanner');
+        if (banner) {
+          banner.classList.remove('shake');
+          void banner.offsetWidth;
+          banner.classList.add('shake');
+        }
+        switchToTab('tabCart');
+        return;
+      }
+
+      const usePointsChecked = !!(activeMember && document.getElementById('usePointsCheckbox')?.checked);
+      const subtotal = cartItems.reduce((sum, item) => sum + (Number(item.price) || 0) * (item.quantity || 1), 0);
+      const availPts = (activeMember && activeMember.points) ? Number(activeMember.points) : 0;
+      const pointsToUse = usePointsChecked ? Math.min(availPts, Math.floor(subtotal)) : 0;
+
+      showToast('Đang tạo đơn hàng thanh toán…');
+
+      try {
+        const orderData = {
+          source: cartId === 'default' ? 'phone' : cartId,
+          cart_id: cartId,
+          items: cartItems.map(item => ({
+            code: item.code,
+            price: item.price,
+            name: item.name,
+            quantity: item.quantity || 1
+          })),
+          member_phone: activeMember ? activeMember.phone_number : null,
+          use_points: usePointsChecked,
+          points_to_use: pointsToUse
+        };
+
+        const res = await fetch(`${API_BASE}/checkout`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(orderData)
+        });
+
+        const result = await res.json();
+        if (res.ok && result.is_paid) {
+          showToast(result.pointsUsed > 0 ? '✅ Đã thanh toán 100% bằng điểm tích lũy!' : '✅ Đơn hàng này đã được thanh toán thành công!');
+          showSuccessModal(result.totalAmount, 0, result.orderId, result.pointsUsed, result.subtotalAmount);
+          return;
+        }
+        if (res.ok && result.qrCode) {
+          currentOrderId = result.orderId;
+          currentCancelToken = result.cancelToken || null;
+          showQrModal(result);
+        } else {
+          showToast('! ' + (result.message || 'Lỗi tạo đơn thanh toán'));
+        }
+      } catch (err) {
+        showToast('! Không thể kết nối tới máy chủ Flask!');
+      }
+    };
+
+    function showQrModal(order) {
+      const total = cartItems.reduce((sum, item) => sum + (Number(item.price) || 0) * (item.quantity || 1), 0);
+      document.getElementById('qrAmount').textContent = money(order.totalAmount || total);
+      document.getElementById('qrStatus').textContent = '⏳ Đang chờ thanh toán...';
+      document.getElementById('qrStatus').style.color = 'var(--muted)';
+
+      const canvas = document.getElementById('qrCanvas');
+      const qrImg = document.getElementById('qrImage');
+
+      function renderQrFallback(codeText) {
+        if (qrImg) {
+          canvas.style.display = 'none';
+          qrImg.style.display = 'block';
+          qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(codeText)}`;
+          qrImg.onload = () => {
+            document.getElementById('qrStatus').textContent = '⏳ Đang chờ thanh toán...';
+          };
+          qrImg.onerror = () => {
+            qrImg.src = `https://quickchart.io/qr?text=${encodeURIComponent(codeText)}&size=220`;
+            qrImg.onerror = () => {
+              document.getElementById('qrStatus').textContent = '⚠️ Không tạo được mã QR, vui lòng gọi nhân viên';
+            };
+          };
+        } else {
+          document.getElementById('qrStatus').textContent = '⚠️ Thiếu thư viện QR, vui lòng gọi nhân viên';
+        }
+      }
+
+      if (order.qrCode) {
+        if (typeof QRCode !== 'undefined' && QRCode.toCanvas) {
+          QRCode.toCanvas(canvas, order.qrCode, { width: 220, margin: 2 }, function (error) {
+            if (error) {
+              console.error('Lỗi vẽ QR Canvas:', error);
+              renderQrFallback(order.qrCode);
+            } else {
+              canvas.style.display = 'block';
+              if (qrImg) qrImg.style.display = 'none';
+            }
+          });
+        } else {
+          console.warn('QRCode JS library chưa sẵn sàng, dùng ảnh QR dự phòng online...');
+          renderQrFallback(order.qrCode);
+        }
+      }
+
+      document.getElementById('qrModal').style.display = 'flex';
+      pollOrderStatus(order.orderId);
+    }
+
+    async function cancelOrder(orderId, cancelToken) {
+      try {
+        await fetch(`${API_BASE}/orders/${orderId}/cancel`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cancel_token: cancelToken })
+        });
+        showToast('Đơn hàng đã được hủy, tồn kho đã khôi phục.');
+      } catch (err) { }
+    }
+
+    function closeQrModal(userCancel = false) {
+      document.getElementById('qrModal').style.display = 'none';
+      if (pollingInterval) clearInterval(pollingInterval);
+
+      if (userCancel && currentOrderId) {
+        cancelOrder(currentOrderId, currentCancelToken);
+        currentOrderId = null;
+        currentCancelToken = null;
+      }
+    }
+
+    function playSuccessChime() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const now = audioCtx.currentTime;
+
+        const osc1 = audioCtx.createOscillator();
+        const gain1 = audioCtx.createGain();
+        osc1.frequency.setValueAtTime(659.25, now);
+        gain1.gain.setValueAtTime(0.2, now);
+        gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+        osc1.connect(gain1);
+        gain1.connect(audioCtx.destination);
+        osc1.start(now);
+        osc1.stop(now + 0.3);
+
+        const osc2 = audioCtx.createOscillator();
+        const gain2 = audioCtx.createGain();
+        osc2.frequency.setValueAtTime(987.77, now + 0.15);
+        gain2.gain.setValueAtTime(0.25, now + 0.15);
+        gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+        osc2.connect(gain2);
+        gain2.connect(audioCtx.destination);
+        osc2.start(now + 0.15);
+        osc2.stop(now + 0.6);
+      } catch (e) { }
+
+      if (navigator.vibrate) {
+        try { navigator.vibrate([100, 50, 100]); } catch (e) { }
+      }
+    }
+
+    function showSuccessModal(paidAmount, earnedPoints = 0, orderId = null, pointsUsed = 0, subtotalAmount = null) {
+      playSuccessChime();
+
+      document.getElementById('successPaidAmount').textContent = money(paidAmount || 0);
+
+      const subtotalRow = document.getElementById('successSubtotalRow');
+      if (subtotalRow) {
+        if (subtotalAmount && subtotalAmount > paidAmount) {
+          document.getElementById('successSubtotalAmount').textContent = money(subtotalAmount);
+          subtotalRow.style.display = 'flex';
+        } else {
+          subtotalRow.style.display = 'none';
+        }
+      }
+
+      const pointsUsedRow = document.getElementById('successPointsUsedRow');
+      if (pointsUsedRow) {
+        if (pointsUsed > 0) {
+          document.getElementById('successPointsUsed').textContent = `-${pointsUsed.toLocaleString('vi-VN')} điểm (-${money(pointsUsed)})`;
+          pointsUsedRow.style.display = 'flex';
+        } else {
+          pointsUsedRow.style.display = 'none';
+        }
+      }
+
+      const pointsRow = document.getElementById('successPointsRow');
+      if (earnedPoints > 0) {
+        document.getElementById('successEarnedPoints').textContent = `+${earnedPoints.toLocaleString('vi-VN')} điểm`;
+        pointsRow.style.display = 'flex';
+      } else {
+        pointsRow.style.display = 'none';
+      }
+
+      document.getElementById('successOrderId').textContent = orderId ? `#${orderId}` : 'Thành công';
+      document.getElementById('successModal').style.display = 'flex';
+
+      // Cập nhật trạng thái ô nhập email gửi hóa đơn
+      currentSuccessOrderId = orderId;
+      const emailInput = document.getElementById('customerEmailInput');
+      const emailStatus = document.getElementById('emailSendStatus');
+      const sendBtn = document.getElementById('btnSendEmailInvoice');
+      if (emailInput) emailInput.value = '';
+      if (emailStatus) {
+        emailStatus.style.display = 'none';
+        emailStatus.textContent = '';
+      }
+      if (sendBtn) {
+        sendBtn.disabled = false;
+        sendBtn.style.opacity = '1';
+        sendBtn.style.background = '#2563EB';
+        sendBtn.textContent = 'Gửi';
+      }
+
+      // Clear cart and state
+      cartItems = [];
+      activeMember = null;
+      setLoggedInMember(null);
+      saveCart();
+      renderCart();
+      syncExpectedWeight();
+
+      // Close QR modal if open
+      document.getElementById('qrModal').style.display = 'none';
+      if (pollingInterval) clearInterval(pollingInterval);
+    }
+
+    let currentSuccessOrderId = null;
+
+    async function sendInvoiceEmail() {
+      const emailInput = document.getElementById('customerEmailInput');
+      const emailStatus = document.getElementById('emailSendStatus');
+      const sendBtn = document.getElementById('btnSendEmailInvoice');
+
+      if (!emailInput || !currentSuccessOrderId) {
+        showToast('⚠️ Không tìm thấy mã đơn hàng để gửi hóa đơn.');
+        return;
+      }
+      const email = (emailInput.value || '').trim();
+
+      if (!/^[A-Za-z0-9._%+\-]+@[A-Za-z0-9\-]+(\.[A-Za-z0-9\-]+)*\.[A-Za-z]{2,}$/.test(email)) {
+        if (emailStatus) {
+          emailStatus.style.display = 'block';
+          emailStatus.style.color = '#DC2626';
+          emailStatus.textContent = '⚠️ Vui lòng nhập địa chỉ Gmail hợp lệ.';
+        }
+        emailInput.focus();
+        return;
+      }
+
+      if (sendBtn) {
+        sendBtn.disabled = true;
+        sendBtn.style.opacity = '0.7';
+        sendBtn.textContent = 'Đang gửi...';
+      }
+      if (emailStatus) {
+        emailStatus.style.display = 'block';
+        emailStatus.style.color = '#2563EB';
+        emailStatus.textContent = '⏳ Đang gửi hóa đơn về Gmail...';
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/orders/${currentSuccessOrderId}/send-invoice`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email })
+        });
+        const result = await res.json();
+        if (res.ok && result.status === 'success') {
+          if (emailStatus) {
+            emailStatus.style.color = '#16A34A';
+            emailStatus.textContent = '✓ ' + (result.message || 'Đã gửi hóa đơn về Gmail thành công!');
+          }
+          if (sendBtn) {
+            sendBtn.textContent = 'Đã gửi ✓';
+            sendBtn.style.background = '#16A34A';
+          }
+          showToast('📧 Đã gửi hóa đơn về Gmail thành công!');
+        } else {
+          if (emailStatus) {
+            emailStatus.style.color = '#DC2626';
+            emailStatus.textContent = '❌ ' + (result.message || 'Không thể gửi email. Vui lòng kiểm tra lại cấu hình.');
+          }
+          if (sendBtn) {
+            sendBtn.disabled = false;
+            sendBtn.style.opacity = '1';
+            sendBtn.textContent = 'Gửi lại';
+          }
+        }
+      } catch (err) {
+        if (emailStatus) {
+          emailStatus.style.color = '#DC2626';
+          emailStatus.textContent = '❌ Lỗi kết nối khi gửi email.';
+        }
+        if (sendBtn) {
+          sendBtn.disabled = false;
+          sendBtn.style.opacity = '1';
+          sendBtn.textContent = 'Gửi lại';
+        }
+      }
+    }
+
+    function closeSuccessModal() {
+      if (typeof closeVirtualKeyboard === 'function') {
+        closeVirtualKeyboard();
+      }
+      document.getElementById('successModal').style.display = 'none';
+    }
+
+    function pollOrderStatus(orderId) {
+      if (pollingInterval) clearInterval(pollingInterval);
+
+      pollingInterval = setInterval(async () => {
+        try {
+          const res = await fetch(`${API_BASE}/orders/${orderId}/status`);
+          const order = await res.json();
+
+          if (order.status === 'PAID' || order.status === 'PAID_OUT_OF_STOCK' || order.is_paid) {
+            clearInterval(pollingInterval);
+            showToast('✅ Thanh toán đơn hàng thành công!');
+            showSuccessModal(order.total_amount, order.earned_points, order.order_id, order.points_used, order.subtotal_amount);
+          } else if (order.status === 'CANCELLED') {
+            clearInterval(pollingInterval);
+            document.getElementById('qrStatus').textContent = '❌ Đơn hàng đã bị hủy';
+            document.getElementById('qrStatus').style.color = 'var(--danger)';
+            showToast('❌ Đơn hàng đã bị hủy hoặc hết hạn!');
+          }
+        } catch (err) { }
+      }, 3000);
+    }
+
+    async function verifyAndHandleRedirect() {
+      const statusParam = urlParams.get('status');
+      const orderIdParam = urlParams.get('order_id') || urlParams.get('orderCode');
+
+      if (!statusParam && !orderIdParam) return;
+
+      if (statusParam === 'cancel') {
+        showToast('⚠️ Bạn đã hủy thanh toán đơn hàng.');
+        window.history.replaceState({}, document.title, window.location.pathname);
+        return;
+      }
+
+      if (statusParam === 'success' || orderIdParam) {
+        if (!orderIdParam) {
+          showToast('⚠️ Không tìm thấy mã đơn hàng để xác thực thanh toán!');
+          window.history.replaceState({}, document.title, window.location.pathname);
+          return;
+        }
+
+        showToast('⏳ Đang xác minh trạng thái thanh toán từ máy chủ...');
+
+        let verified = false;
+        let lastOrder = null;
+
+        // Thử kiểm tra trạng thái đơn hàng (tối đa 5 lần, cách nhau 1.5s phòng khi webhook PayOS đang xử lý)
+        for (let attempt = 1; attempt <= 5; attempt++) {
+          try {
+            const res = await fetch(`${API_BASE}/orders/${orderIdParam}/status`);
+            if (res.ok) {
+              const order = await res.json();
+              lastOrder = order;
+              if (order.status === 'PAID' || order.status === 'PAID_OUT_OF_STOCK' || order.is_paid) {
+                verified = true;
+                showToast('✅ Xác nhận thanh toán thành công!');
+                showSuccessModal(order.total_amount, order.earned_points, order.order_id, order.points_used, order.subtotal_amount);
+                break;
+              } else if (order.status === 'CANCELLED') {
+                showToast('❌ Đơn hàng đã bị hủy hoặc hết hạn thanh toán!');
+                break;
+              }
+            }
+          } catch (err) {
+            console.warn('[Verify Payment] Check attempt error:', err);
+          }
+
+          if (attempt < 5) {
+            await new Promise(resolve => setTimeout(resolve, 1500));
+          }
+        }
+
+        if (!verified) {
+          if (lastOrder && lastOrder.status === 'PENDING') {
+            showToast('⚠️ Đơn hàng chưa hoàn tất thanh toán hoặc đang chờ xử lý!');
+          } else if (!lastOrder || lastOrder.status !== 'CANCELLED') {
+            showToast('⚠️ Không thể xác minh giao dịch thanh toán này!');
+          }
+        }
+
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      if (cartId !== 'default') {
+        document.getElementById('cartIdDisplay').textContent = `[${cartId}]`;
+      }
+      loadCart();
+      renderCart();
+      loadCounters();
+      syncExpectedWeight();
+      pollWeightStatus();
+
+      // Kiểm tra và xác thực an toàn trạng thái thanh toán từ server
+      verifyAndHandleRedirect();
+    });
+
+    // =============================================================
+    // QUẦY HÀNG TRONG SIÊU THỊ
+    // =============================================================
+    const COUNTERS = ["Quầy rau củ", "Quầy đồ uống", "Quầy bánh kẹo", "Quầy đồ đông lạnh"];
+    let counterData = {};
+
+    async function loadCounters() {
+      try {
+        const res = await fetch(`${API_BASE}/counters`);
+        const data = await res.json();
+        counterData = {};
+        data.forEach(g => { counterData[g.counter] = g.products; });
+        renderCounterTabs();
+        showCounterProducts(COUNTERS[0]);
+      } catch (err) {
+        document.getElementById('counterProducts').innerHTML = '<div class="ai-empty">Không thể tải danh sách quầy hàng.</div>';
+      }
+    }
+
+    function renderCounterTabs() {
+      const tabsEl = document.getElementById('counterTabs');
+      tabsEl.innerHTML = COUNTERS.map(c =>
+        `<button class="counter-tab" data-counter="${escapeHtml(c)}" onclick="showCounterProducts(this.dataset.counter)">${escapeHtml(c)}</button>`
+      ).join('');
+    }
+
+    function showCounterProducts(counter) {
+      document.querySelectorAll('.counter-tab').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.counter === counter);
+      });
+
+      const products = counterData[counter] || [];
+      const listEl = document.getElementById('counterProducts');
+
+      if (products.length === 0) {
+        listEl.innerHTML = '<div class="ai-empty">Quầy này chưa có sản phẩm nào.</div>';
+        return;
+      }
+
+      listEl.innerHTML = products.map(p => `
+      <div class="counter-item">
+        <div class="counter-item-info">
+          <div class="counter-item-name">${escapeHtml(p.name)}</div>
+          ${p.weight ? `<div class="counter-item-weight">${p.weight}g</div>` : ''}
+        </div>
+        <div class="counter-item-price">${money(p.price)}</div>
+        <button class="btn btn-primary btn-sm" data-barcode="${escapeHtml(p.barcode)}" onclick="addProductByBarcode(this.dataset.barcode)">+ Thêm</button>
+      </div>
+    `).join('');
+    }
+
+    // =============================================================
+    // AI DISH ASSISTANT
+    // =============================================================
+    const dishInputEl = document.getElementById('dishInput');
+    const dishSuggestBtn = document.getElementById('dishSuggestBtn');
+    const aiResultsEl = document.getElementById('aiResults');
+
+    let suggestAbortCtrl = null; // hủy request cũ khi người dùng bấm món khác (tránh kết quả hiện lộn thứ tự)
+
+    async function suggestIngredients() {
+      const dish = dishInputEl.value.trim();
+      if (!dish) { showToast('Vui lòng nhập tên món ăn'); return; }
+      const servings = 4; // mac dinh 4 nguoi (da bo o chon so nguoi)
+
+      if (suggestAbortCtrl) suggestAbortCtrl.abort();
+      const ctrl = new AbortController();
+      suggestAbortCtrl = ctrl;
+
+      dishSuggestBtn.disabled = true;
+      aiResultsEl.innerHTML = `<div class="ai-empty" style="color: var(--primary);">⏳ Đang tra cứu công thức (${servings} người) và đối chiếu tồn kho siêu thị...</div>`;
+
+      try {
+        const res = await fetch(`${API_BASE}/suggest-ingredients`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ dish_name: dish, servings: servings }),
+          signal: ctrl.signal
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          aiResultsEl.innerHTML = `<div class="ai-empty">⚠️ Không thể tra cứu: ${escapeHtml(errData.message || 'Lỗi xử lý')}</div>`;
+          return;
+        }
+
+        const data = await res.json();
+        aiResultsEl.innerHTML = '';
+
+        if (!data.ingredients || data.ingredients.length === 0) {
+          aiResultsEl.innerHTML = `<div class="ai-empty">Chưa tìm thấy công thức nguyên liệu cho món này trong kho hàng.</div>`;
+          return;
+        }
+
+        // 1. Header tóm tắt món ăn, dinh dưỡng & nút thêm tất cả
+        const availableItems = data.ingredients.filter(p => (p.available_product || (p.suggested_product && p.suggested_product.stock_quantity > 0)));
+        const metaHeader = document.createElement('div');
+        metaHeader.style.cssText = 'background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px;';
+        metaHeader.innerHTML = `
+          <div style="flex: 1; min-width: 180px;">
+            <div style="font-size: 14px; font-weight: 800; color: #14532D;">
+              🍲 ${escapeHtml(data.dish_name || dish)} <span style="font-weight: 600; font-size: 11.5px; color: #166534;">(${data.servings || servings} người)</span>
+            </div>
+            <div style="font-size: 11px; color: #15803D; margin-top: 2px;">
+              ${data.cook_time_min ? `⏱ ${data.cook_time_min} phút • ` : ''}${data.calories_per_serving ? `🔥 ${data.calories_per_serving} kcal/người • ` : ''}Có sẵn <strong>${availableItems.length}/${data.ingredients.length}</strong> nguyên liệu
+            </div>
+          </div>
+          ${availableItems.length > 0 ? `<button type="button" class="btn btn-primary btn-sm" id="addAllAiBtn" style="font-size: 11.5px; padding: 6px 10px;">+ Thêm cả ${availableItems.length} món có sẵn</button>` : ''}
+        `;
+        aiResultsEl.appendChild(metaHeader);
+
+        const listWrap = document.createElement('div');
+        listWrap.className = 'recipe-items-list';
+
+        data.ingredients.forEach(p => {
+          const row = document.createElement('div');
+          row.className = 'ai-result-item';
+          row.style.cssText = 'display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; padding: 8px 10px; background: #FFFFFF; border-radius: 8px; border: 1px solid #E2E8F0; gap: 8px;';
+
+          const match = p.available_product || p.suggested_product;
+          const status = p.match_status || (match ? match.match_status : 'not_found');
+
+          let rightSideHtml;
+          if (match && match.stock_quantity > 0) {
+            const addQty = Math.min(match.suggested_quantity || 1, match.stock_quantity);
+            const isPartial = status === 'insufficient_stock';
+            const badgeStyle = isPartial
+              ? 'color: #92400E; background: #FEF3C7;'
+              : 'color: #166534; background: #DCFCE7;';
+            const badgeText = isPartial
+              ? `Còn ${match.stock_quantity} • ${money(match.price)}`
+              : `Có sẵn • ${money(match.price)}`;
+
+            rightSideHtml = `
+            <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+              <span style="font-size: 10.5px; ${badgeStyle} padding: 3px 6px; border-radius: 4px; font-weight: 600;">
+                ${badgeText}
+              </span>
+              <button
+                class="ai-add-to-cart-btn btn btn-primary btn-sm"
+                data-barcode="${escapeHtml(match.barcode)}"
+                data-qty="${addQty}"
+              >+ Thêm ${addQty > 1 ? `(${addQty})` : ''}</button>
+            </div>
+          `;
+          } else {
+            rightSideHtml = `<span style="font-size: 10.5px; color: #DC2626; background: #FEE2E2; padding: 3px 6px; border-radius: 4px; font-weight: 500; flex-shrink: 0;">Chưa có trong siêu thị</span>`;
+          }
+
+          const hintHtml = (match && match.quantity_hint)
+            ? `<div style="font-size: 10.5px; color: #0284C7; margin-top: 2px;">💡 ${escapeHtml(match.quantity_hint)}</div>`
+            : '';
+
+          row.innerHTML = `
+          <div style="min-width: 0; flex: 1;">
+            <div style="font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              ${escapeHtml(match ? match.name : p.name)}
+            </div>
+            <div style="font-size: 11px; color: var(--muted);">
+              ${match ? 'Nguyên liệu: ' + escapeHtml(p.name || '') + ' • ' : ''}Cần: <strong>${escapeHtml(p.amount || '')}</strong>
+            </div>
+            ${hintHtml}
+          </div>
+          ${rightSideHtml}
+        `;
+          listWrap.appendChild(row);
+        });
+
+        aiResultsEl.appendChild(listWrap);
+
+        // Nút thêm toàn bộ nguyên liệu có sẵn vào giỏ
+        const addAllBtn = document.getElementById('addAllAiBtn');
+        if (addAllBtn) {
+          addAllBtn.onclick = async () => {
+            addAllBtn.disabled = true;
+            for (const p of availableItems) {
+              const m = p.available_product || p.suggested_product;
+              if (m && m.barcode && m.stock_quantity > 0) {
+                const q = Math.min(m.suggested_quantity || 1, m.stock_quantity);
+                await fetchProduct(m.barcode, q);
+              }
+            }
+            switchToTab('tabCart');
+          };
+        }
+
+        // 2. Hiển thị hướng dẫn các bước nấu (nếu có)
+        if (Array.isArray(data.steps) && data.steps.length > 0) {
+          const stepsDetails = document.createElement('details');
+          stepsDetails.style.cssText = 'margin-top: 8px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 12px; font-size: 12px;';
+          stepsDetails.innerHTML = `
+            <summary style="font-weight: 700; color: #1E293B; cursor: pointer;">📖 Xem công thức chế biến (${data.steps.length} bước)</summary>
+            <div style="margin-top: 8px; display: flex; flex-direction: column; gap: 6px;">
+              ${data.steps.map((st, idx) => `
+                <div style="line-height: 1.45;">
+                  <strong style="color: var(--primary);">Bước ${idx + 1}${st.title ? ': ' + escapeHtml(st.title) : ''}</strong> — ${escapeHtml(st.content)}
+                </div>
+              `).join('')}
+            </div>
+          `;
+          aiResultsEl.appendChild(stepsDetails);
+        }
+
+      } catch (err) {
+        if (err && err.name === 'AbortError') return; // đã có request mới thay thế
+        aiResultsEl.innerHTML = `<div class="ai-empty">⚠️ Không thể kết nối tới máy chủ Flask!</div>`;
+      } finally {
+        if (suggestAbortCtrl === ctrl) {
+          suggestAbortCtrl = null;
+          dishSuggestBtn.disabled = false;
+        }
+      }
+    }
+
+    dishSuggestBtn.onclick = suggestIngredients;
+    aiResultsEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('.ai-add-to-cart-btn');
+      if (!btn) return;
+      const barcode = btn.dataset.barcode;
+      const qty = parseInt(btn.dataset.qty, 10) || 1;
+      fetchProduct(barcode, qty);
+      switchToTab('tabCart');
+    });
+    dishInputEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') suggestIngredients();
+    });
+
+    // =============================================================
+    // BÀN PHÍM ẢO CẢM ỨNG (ON-SCREEN VIRTUAL KEYBOARD) CHO KIOSK
+    // =============================================================
+    let vkTargetInput = null;
+    let vkOnEnterCallback = null;
+    let vkIsShift = false;
+    let vkMode = 'abc'; // 'abc' hoặc 'num'
+
+    const vkDrawer = document.getElementById('virtualKeyboard');
+    const vkKeysContainer = document.getElementById('vkKeysContainer');
+    const dishKbBtn = document.getElementById('dishKbBtn');
+    const searchKbBtn = document.getElementById('searchKbBtn');
+    const productSearchInputEl = document.getElementById('productSearchInput');
+
+    // Bộ bảng mã nguyên âm tiếng Việt và thanh điệu
+    const VN_TONES = {
+      'a': ['a', 'á', 'à', 'ả', 'ã', 'ạ'],
+      'ă': ['ă', 'ắ', 'ằ', 'ẳ', 'ẵ', 'ặ'],
+      'â': ['â', 'ấ', 'ầ', 'ẩ', 'ẫ', 'ậ'],
+      'e': ['e', 'é', 'è', 'ẻ', 'ẽ', 'ẹ'],
+      'ê': ['ê', 'ế', 'ề', 'ể', 'ễ', 'ệ'],
+      'i': ['i', 'í', 'ì', 'ỉ', 'ĩ', 'ị'],
+      'o': ['o', 'ó', 'ò', 'ỏ', 'õ', 'ọ'],
+      'ô': ['ô', 'ố', 'ồ', 'ổ', 'ỗ', 'ộ'],
+      'ơ': ['ơ', 'ớ', 'ờ', 'ở', 'ỡ', 'ợ'],
+      'u': ['u', 'ú', 'ù', 'ủ', 'ũ', 'ụ'],
+      'ư': ['ư', 'ứ', 'ừ', 'ử', 'ữ', 'ự'],
+      'y': ['y', 'ý', 'ỳ', 'ỷ', 'ỹ', 'ỵ']
+    };
+
+    const CHAR_TO_VOWEL = {};
+    for (const [base, list] of Object.entries(VN_TONES)) {
+      list.forEach((char, tone) => {
+        CHAR_TO_VOWEL[char] = { base, tone, upper: false };
+        CHAR_TO_VOWEL[char.toUpperCase()] = { base, tone, upper: true };
+      });
+    }
+
+    const VK_LAYOUT_ABC = [
+      ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
+      ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'],
+      ['shift', 'z', 'x', 'c', 'v', 'b', 'n', 'm', 'backspace'],
+      ['mode', 'space', 'clear', 'submit']
+    ];
+
+    const VK_LAYOUT_NUM = [
+      ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
+      ['-', '/', ':', ';', '(', ')', '$', '&', '@', '"'],
+      ['.', ',', '?', '!', '\'', '%', '+', 'backspace'],
+      ['mode', 'space', 'clear', 'submit']
+    ];
+
+    const VK_LAYOUT_PHONE = [
+      ['1', '2', '3'],
+      ['4', '5', '6'],
+      ['7', '8', '9'],
+      ['clear', '0', 'backspace'],
+      ['close', 'submit']
+    ];
+
+    const VK_LAYOUT_EMAIL = [
+      ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
+      ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
+      ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', '-', '_'],
+      ['z', 'x', 'c', 'v', 'b', 'n', 'm', '@', '.', 'backspace'],
+      ['clear', '@gmail.com', '.com', 'submit']
+    ];
+
+    function renderVirtualKeyboard() {
+      if (!vkKeysContainer) return;
+      vkKeysContainer.innerHTML = '';
+
+      const chipsBar = document.getElementById('vkChipsBar');
+      const phoneTitle = document.getElementById('vkPhoneTitle');
+
+      if (vkMode === 'phone') {
+        if (chipsBar) chipsBar.style.display = 'none';
+        if (phoneTitle) {
+          phoneTitle.style.display = 'block';
+          phoneTitle.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M7 8h.01" /><path d="M12 8h.01" /><path d="M17 8h.01" /><path d="M7 12h.01" /><path d="M12 12h.01" /><path d="M17 12h.01" /><path d="M7 16h.01" /><path d="M12 16h.01" /><path d="M17 16h.01" /></svg> Bàn phím số điện thoại`;
+        }
+      } else if (vkMode === 'email') {
+        if (phoneTitle) phoneTitle.style.display = 'none';
+        if (chipsBar) {
+          chipsBar.style.display = 'flex';
+          chipsBar.innerHTML = `
+            <span class="vk-chip" style="font-weight:700; background:#EFF6FF; color:#1D4ED8; border-color:#BFDBFE;" onclick="vkAppendDomain('@gmail.com')">@gmail.com</span>
+            <span class="vk-chip" onclick="vkAppendDomain('@outlook.com')">@outlook.com</span>
+            <span class="vk-chip" onclick="vkAppendDomain('@yahoo.com')">@yahoo.com</span>
+            <span class="vk-chip" onclick="vkAppendDomain('@icloud.com')">@icloud.com</span>
+            <span class="vk-chip" onclick="vkAppendDomain('.com')">.com</span>
+            <span class="vk-chip" onclick="vkAppendDomain('.vn')">.vn</span>
+          `;
+        }
+      } else {
+        if (phoneTitle) phoneTitle.style.display = 'none';
+        if (chipsBar) {
+          chipsBar.style.display = 'flex';
+          chipsBar.innerHTML = `
+            <span class="vk-chip" onclick="vkPickSuggestion('Phở bò')">Phở bò</span>
+            <span class="vk-chip" onclick="vkPickSuggestion('Canh chua cá lóc')">Canh chua</span>
+            <span class="vk-chip" onclick="vkPickSuggestion('Thịt kho tàu')">Thịt kho tàu</span>
+            <span class="vk-chip" onclick="vkPickSuggestion('Lẩu thái hải sản')">Lẩu thái</span>
+            <span class="vk-chip" onclick="vkPickSuggestion('Bò kho')">Bò kho</span>
+            <span class="vk-chip" onclick="vkPickSuggestion('Gà chiên nước mắm')">Gà chiên mắm</span>
+            <span class="vk-chip" onclick="vkPickSuggestion('Súp bí đỏ')">Súp bí đỏ</span>
+          `;
+        }
+      }
+
+      let layout;
+      if (vkMode === 'phone') {
+        layout = VK_LAYOUT_PHONE;
+      } else if (vkMode === 'email') {
+        layout = VK_LAYOUT_EMAIL;
+      } else if (vkMode === 'num') {
+        layout = VK_LAYOUT_NUM;
+      } else {
+        layout = VK_LAYOUT_ABC;
+      }
+
+      layout.forEach(row => {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'vk-row';
+
+        row.forEach(key => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'vk-key';
+
+          if (vkMode === 'email') {
+            btn.style.height = '35px';
+            if (key === '@gmail.com') {
+              btn.className += ' special';
+              btn.innerHTML = '@gmail.com';
+              btn.style.fontWeight = '700';
+              btn.style.color = '#1D4ED8';
+              btn.style.background = '#EFF6FF';
+              btn.style.fontSize = '12px';
+              btn.onclick = (e) => { e.preventDefault(); vkAppendDomain('@gmail.com'); };
+            } else if (key === '.com') {
+              btn.className += ' special';
+              btn.innerHTML = '.com';
+              btn.style.fontWeight = '600';
+              btn.style.fontSize = '12.5px';
+              btn.onclick = (e) => { e.preventDefault(); vkAppendDomain('.com'); };
+            } else if (key === 'clear') {
+              btn.className += ' special';
+              btn.innerHTML = 'Xóa hết';
+              btn.style.fontSize = '12px';
+              btn.onclick = (e) => { e.preventDefault(); vkClear(); };
+            } else if (key === 'backspace') {
+              btn.className += ' special';
+              btn.innerHTML = '⌫';
+              btn.style.fontSize = '15px';
+              btn.style.fontWeight = '700';
+              btn.onclick = (e) => { e.preventDefault(); vkBackspace(); };
+            } else if (key === 'submit') {
+              btn.className += ' enter';
+              btn.innerHTML = '✓ Gửi Hóa Đơn';
+              btn.style.background = '#16A34A';
+              btn.style.fontSize = '12.5px';
+              btn.style.fontWeight = '700';
+              btn.onclick = (e) => { e.preventDefault(); vkSubmit(); };
+            } else {
+              btn.style.fontSize = '14px';
+              btn.style.fontWeight = '600';
+              btn.textContent = key;
+              btn.onclick = (e) => { e.preventDefault(); vkKeyPress(key); };
+            }
+          } else if (vkMode === 'phone') {
+            btn.style.height = '48px';
+            if (key === 'clear') {
+              btn.className += ' special';
+              btn.innerHTML = 'Xóa hết';
+              btn.style.fontSize = '13.5px';
+              btn.onclick = (e) => { e.preventDefault(); vkClear(); };
+            } else if (key === 'backspace') {
+              btn.className += ' special';
+              btn.innerHTML = '⌫ Xóa';
+              btn.style.fontSize = '14px';
+              btn.onclick = (e) => { e.preventDefault(); vkBackspace(); };
+            } else if (key === 'close') {
+              btn.className += ' special';
+              btn.innerHTML = '✕ Đóng';
+              btn.style.fontSize = '13.5px';
+              btn.style.height = '44px';
+              btn.onclick = (e) => { e.preventDefault(); closeVirtualKeyboard(); };
+            } else if (key === 'submit') {
+              btn.className += ' enter';
+              btn.innerHTML = (vkTargetInput && vkTargetInput.id === 'newMemberPhone') ? '✓ Đăng Ký' : '✓ Xong';
+              btn.style.fontSize = '14px';
+              btn.style.height = '44px';
+              btn.onclick = (e) => { e.preventDefault(); vkSubmit(); };
+            } else {
+              btn.style.fontSize = '22px';
+              btn.style.fontWeight = '700';
+              btn.textContent = key;
+              btn.onclick = (e) => { e.preventDefault(); vkKeyPress(key); };
+            }
+          } else {
+            if (key === 'shift') {
+              btn.className += ' special';
+              btn.innerHTML = vkIsShift ? '⇪ HOA' : '⇧ Thường';
+              if (vkIsShift) btn.style.background = 'var(--accent-dim)';
+              btn.onclick = (e) => { e.preventDefault(); vkToggleShift(); };
+            } else if (key === 'backspace') {
+              btn.className += ' special';
+              btn.innerHTML = '⌫ Xóa';
+              btn.onclick = (e) => { e.preventDefault(); vkBackspace(); };
+            } else if (key === 'mode') {
+              btn.className += ' special';
+              btn.innerHTML = (vkMode === 'abc') ? '?123' : 'ABC';
+              btn.onclick = (e) => { e.preventDefault(); vkToggleMode(); };
+            } else if (key === 'space') {
+              btn.className += ' space';
+              btn.innerHTML = 'Dấu cách';
+              btn.onclick = (e) => { e.preventDefault(); vkKeyPress(' '); };
+            } else if (key === 'clear') {
+              btn.className += ' special';
+              btn.innerHTML = 'Xóa hết';
+              btn.onclick = (e) => { e.preventDefault(); vkClear(); };
+            } else if (key === 'submit') {
+              btn.className += ' enter';
+              btn.innerHTML = (vkTargetInput === dishInputEl) ? 'Tìm món' : 'Xong';
+              btn.onclick = (e) => { e.preventDefault(); vkSubmit(); };
+            } else {
+              const char = vkIsShift ? key.toUpperCase() : key;
+              btn.textContent = char;
+              btn.onclick = (e) => { e.preventDefault(); vkKeyPress(char); };
+            }
+          }
+
+          rowDiv.appendChild(btn);
+        });
+
+        vkKeysContainer.appendChild(rowDiv);
+      });
+    }
+
+    let vkCursorPos = null;
+
+    function openVirtualKeyboard(inputEl, onEnter, defaultMode) {
+      vkTargetInput = inputEl;
+      vkOnEnterCallback = onEnter || null;
+      vkCursorPos = inputEl ? inputEl.value.length : 0;
+
+      if (defaultMode) {
+        vkMode = defaultMode;
+      } else if (inputEl && (inputEl.type === 'email' || inputEl.id === 'customerEmailInput')) {
+        vkMode = 'email';
+      } else if (inputEl && (inputEl.type === 'tel' || inputEl.id === 'newMemberPhone' || inputEl.id === 'memberPhoneInput')) {
+        vkMode = 'phone';
+      } else {
+        vkMode = 'abc';
+      }
+
+      renderVirtualKeyboard();
+      if (vkDrawer) vkDrawer.classList.add('active');
+
+      const successModalEl = document.getElementById('successModal');
+      if (successModalEl && successModalEl.style.display === 'flex') {
+        successModalEl.style.alignItems = 'flex-start';
+        successModalEl.style.paddingTop = '6px';
+      }
+
+      setTimeout(() => {
+        if (inputEl) {
+          inputEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
+    }
+
+    function closeVirtualKeyboard() {
+      if (vkDrawer) vkDrawer.classList.remove('active');
+      vkTargetInput = null;
+      vkCursorPos = null;
+
+      const successModalEl = document.getElementById('successModal');
+      if (successModalEl) {
+        successModalEl.style.alignItems = 'center';
+        successModalEl.style.paddingTop = '16px';
+      }
+    }
+
+    function vkAppendDomain(domain) {
+      if (!vkTargetInput) return;
+      let val = (vkTargetInput.value || '').trim();
+      if (domain.startsWith('@')) {
+        const atIdx = val.indexOf('@');
+        if (atIdx !== -1) {
+          val = val.substring(0, atIdx) + domain;
+          vkCursorPos = val.length;
+        } else if (!val) {
+          val = domain;
+          vkCursorPos = 0;
+        } else {
+          val += domain;
+          vkCursorPos = val.length;
+        }
+      } else {
+        if (!val.endsWith(domain)) {
+          val += domain;
+        }
+        vkCursorPos = val.length;
+      }
+      vkTargetInput.value = val;
+      try { vkTargetInput.setSelectionRange(vkCursorPos, vkCursorPos); } catch (e) { }
+      vkTargetInput.dispatchEvent(new Event('input'));
+    }
+
+    function vkPickSuggestion(text) {
+      if (vkTargetInput) {
+        vkTargetInput.value = text;
+        vkCursorPos = text.length;
+        vkTargetInput.dispatchEvent(new Event('input'));
+      }
+      if (vkOnEnterCallback) {
+        vkOnEnterCallback();
+      }
+      closeVirtualKeyboard();
+    }
+
+    function transformWordTone(word, toneIndex) {
+      if (!word) return word;
+      const lower = word.toLowerCase();
+
+      // 1. Tìm vị trí tất cả các nguyên âm
+      let vowelIndices = [];
+      for (let i = 0; i < word.length; i++) {
+        if (CHAR_TO_VOWEL[word[i]]) {
+          vowelIndices.push(i);
+        }
+      }
+      if (vowelIndices.length === 0) return word;
+
+      // Xử lý phụ âm ghép 'gi' và 'qu' đặc biệt của tiếng Việt:
+      // 'gi' theo sau bởi nguyên âm khác (vd: gio, gia, gie, giu...) thì 'i' là phụ âm ghép, KHÔNG nhận dấu
+      if (lower.startsWith('gi') && vowelIndices.length > 1 && vowelIndices[0] === 1) {
+        vowelIndices = vowelIndices.slice(1);
+      }
+      // 'qu' theo sau bởi nguyên âm (vd: qua, que, qui, quo...) thì 'u' là phụ âm ghép, KHÔNG nhận dấu
+      if (lower.startsWith('qu') && vowelIndices.length > 1 && vowelIndices[0] === 1) {
+        vowelIndices = vowelIndices.slice(1);
+      }
+
+      if (vowelIndices.length === 0) return word;
+
+      let targetIdx = vowelIndices[0];
+
+      if (vowelIndices.length > 1) {
+        // Nếu có 'ươ' (như nước, đường, mười):
+        if (lower.includes('ươ')) {
+          const uoIdx = lower.indexOf('ươ');
+          const hasEndConsonant = (uoIdx + 1) < word.length - 1;
+          targetIdx = hasEndConsonant ? (uoIdx + 1) : uoIdx;
+        } else {
+          // Ưu tiên nguyên âm có mũ hoặc móc: ê, ô, ơ, ư
+          const hatVowels = 'êếềểễệôốồổỗộơớờởỡợưứừửữự';
+          let foundHat = false;
+          for (const idx of vowelIndices) {
+            if (hatVowels.includes(lower[idx])) {
+              targetIdx = idx;
+              foundHat = true;
+              break;
+            }
+          }
+
+          if (!foundHat) {
+            const hasEndConsonant = vowelIndices[vowelIndices.length - 1] < word.length - 1;
+            const pair = (word[vowelIndices[0]] + word[vowelIndices[1]]).toLowerCase();
+
+            if (pair === 'oa' || pair === 'oe' || pair === 'uy' || pair === 'ue') {
+              targetIdx = vowelIndices[1];
+            } else if (pair === 'ua' || pair === 'ia') {
+              targetIdx = hasEndConsonant ? vowelIndices[1] : vowelIndices[0];
+            } else if (hasEndConsonant) {
+              targetIdx = vowelIndices[1];
+            } else {
+              targetIdx = vowelIndices[0];
+            }
+          }
+        }
+      }
+
+      const info = CHAR_TO_VOWEL[word[targetIdx]];
+      if (!info) return word;
+
+      const newTone = (info.tone === toneIndex) ? 0 : toneIndex;
+      const newChar = VN_TONES[info.base][newTone];
+      const finalChar = info.upper ? newChar.toUpperCase() : newChar;
+
+      return word.substring(0, targetIdx) + finalChar + word.substring(targetIdx + 1);
+    }
+
+    // Xử lý bộ gõ Telex tự động (s, f, r, x, j, w, aa, ee, oo, dd)
+    function tryTelexProcess(char) {
+      if (!vkTargetInput) return false;
+      const val = vkTargetInput.value;
+      const cursorPos = (typeof vkCursorPos === 'number') ? Math.min(vkCursorPos, val.length) : val.length;
+
+      let wordStart = cursorPos;
+      while (wordStart > 0 && !/\s|[.,;:!?\/\-()]/.test(val[wordStart - 1])) {
+        wordStart--;
+      }
+      const word = val.substring(wordStart, cursorPos);
+      if (!word) {
+        // Cho phép gõ chữ 'w' đầu từ tạo ra 'ư'
+        if (char.toLowerCase() === 'w') {
+          const wChar = (char === 'W') ? 'Ư' : 'ư';
+          vkTargetInput.value = val.substring(0, cursorPos) + wChar + val.substring(cursorPos);
+          vkCursorPos = cursorPos + 1;
+          try { vkTargetInput.setSelectionRange(vkCursorPos, vkCursorPos); } catch (e) { }
+          vkTargetInput.dispatchEvent(new Event('input'));
+          return true;
+        }
+        return false;
+      }
+
+      const lowerChar = char.toLowerCase();
+
+      // 1. Dấu thanh Telex (s=sắc, f=huyền, r=hỏi, x=ngã, j=nặng)
+      const TELEX_TONES = { 's': 1, 'f': 2, 'r': 3, 'x': 4, 'j': 5 };
+      if (TELEX_TONES[lowerChar] !== undefined) {
+        const hasVowel = [...word].some(ch => CHAR_TO_VOWEL[ch]);
+        if (hasVowel) {
+          const newWord = transformWordTone(word, TELEX_TONES[lowerChar]);
+          if (newWord && newWord !== word) {
+            vkTargetInput.value = val.substring(0, wordStart) + newWord + val.substring(cursorPos);
+            vkCursorPos = wordStart + newWord.length;
+            try { vkTargetInput.setSelectionRange(vkCursorPos, vkCursorPos); } catch (e) { }
+            vkTargetInput.dispatchEvent(new Event('input'));
+            return true;
+          }
+        }
+      }
+
+      // 2. Chuyển đổi phụ âm & nguyên âm Telex (w, aa, ee, oo, dd)
+      const lastChar = word.slice(-1);
+      let telexReplaced = null;
+
+      if (lowerChar === 'd') {
+        if (lastChar.toLowerCase() === 'd') {
+          telexReplaced = (lastChar === 'D') ? 'Đ' : 'đ';
+        } else if (lastChar === 'đ' || lastChar === 'Đ') {
+          telexReplaced = (lastChar === 'Đ') ? 'DD' : 'dd';
+        }
+      } else if (lowerChar === 'a') {
+        if (lastChar in CHAR_TO_VOWEL && CHAR_TO_VOWEL[lastChar].base === 'a') {
+          const info = CHAR_TO_VOWEL[lastChar];
+          const newCh = VN_TONES['â'][info.tone];
+          telexReplaced = info.upper ? newCh.toUpperCase() : newCh;
+        } else if (lastChar in CHAR_TO_VOWEL && CHAR_TO_VOWEL[lastChar].base === 'â') {
+          const info = CHAR_TO_VOWEL[lastChar];
+          const baseA = VN_TONES['a'][info.tone];
+          telexReplaced = info.upper ? (baseA.toUpperCase() + 'A') : (baseA + 'a');
+        }
+      } else if (lowerChar === 'e') {
+        if (lastChar in CHAR_TO_VOWEL && CHAR_TO_VOWEL[lastChar].base === 'e') {
+          const info = CHAR_TO_VOWEL[lastChar];
+          const newCh = VN_TONES['ê'][info.tone];
+          telexReplaced = info.upper ? newCh.toUpperCase() : newCh;
+        } else if (lastChar in CHAR_TO_VOWEL && CHAR_TO_VOWEL[lastChar].base === 'ê') {
+          const info = CHAR_TO_VOWEL[lastChar];
+          const baseE = VN_TONES['e'][info.tone];
+          telexReplaced = info.upper ? (baseE.toUpperCase() + 'E') : (baseE + 'e');
+        }
+      } else if (lowerChar === 'o') {
+        if (lastChar in CHAR_TO_VOWEL && CHAR_TO_VOWEL[lastChar].base === 'o') {
+          const info = CHAR_TO_VOWEL[lastChar];
+          const newCh = VN_TONES['ô'][info.tone];
+          telexReplaced = info.upper ? newCh.toUpperCase() : newCh;
+        } else if (lastChar in CHAR_TO_VOWEL && CHAR_TO_VOWEL[lastChar].base === 'ô') {
+          const info = CHAR_TO_VOWEL[lastChar];
+          const baseO = VN_TONES['o'][info.tone];
+          telexReplaced = info.upper ? (baseO.toUpperCase() + 'O') : (baseO + 'o');
+        }
+      } else if (lowerChar === 'w') {
+        const lowerWord = word.toLowerCase();
+        if (lowerWord.includes('uo')) {
+          const idx = lowerWord.lastIndexOf('uo');
+          const uoSlice = word.substring(idx, idx + 2);
+          const rep = (uoSlice === 'UO') ? 'ƯƠ' : ((uoSlice === 'Uo') ? 'Ươ' : 'ươ');
+          const newWord = word.substring(0, idx) + rep + word.substring(idx + 2);
+          vkTargetInput.value = val.substring(0, wordStart) + newWord + val.substring(cursorPos);
+          vkCursorPos = wordStart + newWord.length;
+          try { vkTargetInput.setSelectionRange(vkCursorPos, vkCursorPos); } catch (e) { }
+          vkTargetInput.dispatchEvent(new Event('input'));
+          return true;
+        } else if (lastChar === 'ư' || lastChar === 'Ư') {
+          telexReplaced = (lastChar === 'Ư') ? 'W' : 'w';
+        } else if (lastChar in CHAR_TO_VOWEL) {
+          const info = CHAR_TO_VOWEL[lastChar];
+          if (info.base === 'a') {
+            const newCh = VN_TONES['ă'][info.tone];
+            telexReplaced = info.upper ? newCh.toUpperCase() : newCh;
+          } else if (info.base === 'o') {
+            const newCh = VN_TONES['ơ'][info.tone];
+            telexReplaced = info.upper ? newCh.toUpperCase() : newCh;
+          } else if (info.base === 'u') {
+            const newCh = VN_TONES['ư'][info.tone];
+            telexReplaced = info.upper ? newCh.toUpperCase() : newCh;
+          } else if (info.base === 'ă' || info.base === 'ơ') {
+            const revMap = { 'ă': 'a', 'ơ': 'o' };
+            const origBase = revMap[info.base];
+            const origCh = VN_TONES[origBase][info.tone];
+            telexReplaced = info.upper ? (origCh.toUpperCase() + 'W') : (origCh + 'w');
+          }
+        } else {
+          telexReplaced = (char === 'W') ? 'Ư' : 'ư';
+        }
+      }
+
+      if (telexReplaced) {
+        const newWord = word.slice(0, -1) + telexReplaced;
+        vkTargetInput.value = val.substring(0, wordStart) + newWord + val.substring(cursorPos);
+        vkCursorPos = wordStart + newWord.length;
+        try { vkTargetInput.setSelectionRange(vkCursorPos, vkCursorPos); } catch (e) { }
+        vkTargetInput.dispatchEvent(new Event('input'));
+        return true;
+      }
+
+      return false;
+    }
+
+    function vkKeyPress(char) {
+      if (!vkTargetInput) return;
+
+      if (vkMode === 'phone') {
+        if (!/^[0-9+]$/.test(char)) return;
+        if (vkTargetInput.value.length >= 11) return;
+      } else if (vkMode === 'email') {
+        // Nhập email: không áp dụng gõ dấu Telex tiếng Việt, luôn chuyển ký tự thành chữ thường
+        char = char.toLowerCase();
+      } else {
+        // Thử xử lý bộ gõ Telex trước (nếu gõ s, f, r, x, j, w, aa...)
+        if (tryTelexProcess(char)) {
+          if (vkIsShift) {
+            vkIsShift = false;
+            renderVirtualKeyboard();
+          }
+          return;
+        }
+      }
+
+      const val = vkTargetInput.value;
+      let start;
+
+      // Nếu ô nhập liệu đang giữ focus và có con trỏ hợp lệ
+      if (document.activeElement === vkTargetInput && typeof vkTargetInput.selectionStart === 'number' && vkTargetInput.selectionStart > 0) {
+        start = vkTargetInput.selectionStart;
+      } else if (typeof vkCursorPos === 'number') {
+        start = Math.min(vkCursorPos, val.length);
+      } else {
+        start = val.length;
+      }
+
+      vkTargetInput.value = val.substring(0, start) + char + val.substring(start);
+      vkCursorPos = start + char.length;
+
+      try {
+        vkTargetInput.setSelectionRange(vkCursorPos, vkCursorPos);
+      } catch (e) { }
+
+      vkTargetInput.dispatchEvent(new Event('input'));
+
+      if (vkIsShift) {
+        vkIsShift = false;
+        renderVirtualKeyboard();
+      }
+    }
+
+    function vkBackspace() {
+      if (!vkTargetInput) return;
+
+      const val = vkTargetInput.value;
+      let start;
+
+      if (document.activeElement === vkTargetInput && typeof vkTargetInput.selectionStart === 'number' && vkTargetInput.selectionStart > 0) {
+        start = vkTargetInput.selectionStart;
+      } else if (typeof vkCursorPos === 'number' && vkCursorPos > 0) {
+        start = Math.min(vkCursorPos, val.length);
+      } else {
+        start = val.length;
+      }
+
+      if (start > 0) {
+        vkTargetInput.value = val.substring(0, start - 1) + val.substring(start);
+        vkCursorPos = start - 1;
+        try {
+          vkTargetInput.setSelectionRange(vkCursorPos, vkCursorPos);
+        } catch (e) { }
+        vkTargetInput.dispatchEvent(new Event('input'));
+      }
+    }
+
+    function vkClear() {
+      if (!vkTargetInput) return;
+      vkTargetInput.value = '';
+      vkCursorPos = 0;
+      vkTargetInput.dispatchEvent(new Event('input'));
+    }
+
+    function vkToggleShift() {
+      vkIsShift = !vkIsShift;
+      renderVirtualKeyboard();
+    }
+
+    function vkToggleMode() {
+      vkMode = (vkMode === 'abc') ? 'num' : 'abc';
+      renderVirtualKeyboard();
+    }
+
+    function vkSubmit() {
+      if (vkOnEnterCallback) {
+        vkOnEnterCallback();
+      }
+      closeVirtualKeyboard();
+    }
+
+    // Gắn sự kiện mở bàn phím ảo cho phần nhập món ăn AI
+    if (dishInputEl) {
+      dishInputEl.addEventListener('click', () => openVirtualKeyboard(dishInputEl, suggestIngredients));
+      dishInputEl.addEventListener('focus', () => openVirtualKeyboard(dishInputEl, suggestIngredients));
+    }
+    if (dishKbBtn) {
+      dishKbBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openVirtualKeyboard(dishInputEl, suggestIngredients);
+      });
+    }
+
+    // Gắn sự kiện mở bàn phím ảo cho phần tìm kiếm sản phẩm
+    if (productSearchInputEl) {
+      productSearchInputEl.addEventListener('click', () => {
+        openVirtualKeyboard(productSearchInputEl, () => productSearchInputEl.dispatchEvent(new Event('input')));
+      });
+      productSearchInputEl.addEventListener('focus', () => {
+        openVirtualKeyboard(productSearchInputEl, () => productSearchInputEl.dispatchEvent(new Event('input')));
+      });
+    }
+    if (searchKbBtn) {
+      searchKbBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openVirtualKeyboard(productSearchInputEl, () => productSearchInputEl.dispatchEvent(new Event('input')));
+      });
+    }
+
+    // Ngăn trình duyệt làm mất focus của ô nhập liệu khi bấm phím ảo
+    if (vkDrawer) {
+      vkDrawer.addEventListener('mousedown', (e) => {
+        if (!e.target.closest('.vk-btn-close')) {
+          e.preventDefault();
+        }
+      });
+    }
+
+    // Cập nhật vị trí con trỏ khi người dùng chạm trực tiếp vào ô nhập liệu
+    [dishInputEl, productSearchInputEl].forEach(inp => {
+      if (!inp) return;
+      inp.addEventListener('click', () => {
+        if (typeof inp.selectionStart === 'number') {
+          vkCursorPos = inp.selectionStart;
+        }
+      });
+      inp.addEventListener('keyup', () => {
+        if (typeof inp.selectionStart === 'number') {
+          vkCursorPos = inp.selectionStart;
+        }
+      });
+    });
+
+    // Gắn sự kiện mở bàn phím số ảo cho ô nhập SĐT thành viên ở Tab 4
+    const memberPhoneInputEl = document.getElementById('memberPhoneInput');
+    if (memberPhoneInputEl) {
+      memberPhoneInputEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openVirtualKeyboard(memberPhoneInputEl, () => document.getElementById('applyPhoneBtn').click(), 'phone');
+      });
+      memberPhoneInputEl.addEventListener('focus', () => {
+        openVirtualKeyboard(memberPhoneInputEl, () => document.getElementById('applyPhoneBtn').click(), 'phone');
+      });
+    }
+
+    // Gắn sự kiện mở bàn phím ảo cho ô nhập Gmail nhận hóa đơn
+    const customerEmailInputEl = document.getElementById('customerEmailInput');
+    const emailKbBtn = document.getElementById('emailKbBtn');
+    if (customerEmailInputEl) {
+      customerEmailInputEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openVirtualKeyboard(customerEmailInputEl, sendInvoiceEmail, 'email');
+      });
+      customerEmailInputEl.addEventListener('focus', () => {
+        openVirtualKeyboard(customerEmailInputEl, sendInvoiceEmail, 'email');
+      });
+      customerEmailInputEl.addEventListener('keyup', () => {
+        if (typeof customerEmailInputEl.selectionStart === 'number') {
+          vkCursorPos = customerEmailInputEl.selectionStart;
+        }
+      });
+    }
+    if (emailKbBtn) {
+      emailKbBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openVirtualKeyboard(customerEmailInputEl, sendInvoiceEmail, 'email');
+      });
+    }
+
+    // Đóng bàn phím khi bấm ra ngoài
+    document.addEventListener('click', (e) => {
+      if (!vkDrawer || !vkDrawer.classList.contains('active')) return;
+      if (vkDrawer.contains(e.target)) return;
+      if (dishInputEl && (e.target === dishInputEl || (dishKbBtn && dishKbBtn.contains(e.target)))) return;
+      if (productSearchInputEl && (e.target === productSearchInputEl || (searchKbBtn && searchKbBtn.contains(e.target)))) return;
+      if (memberPhoneInputEl && e.target === memberPhoneInputEl) return;
+      const nmPhone = document.getElementById('newMemberPhone');
+      if (nmPhone && e.target === nmPhone) return;
+      if (customerEmailInputEl && (e.target === customerEmailInputEl || (emailKbBtn && emailKbBtn.contains(e.target)))) return;
+      closeVirtualKeyboard();
+    });
+
+    // =============================================================
+    // LOYALTY MEMBER & FACE SCAN
+    // =============================================================
+    function updateLoyaltyEarnedPoints(payableTotal = null) {
+      if (!activeMember) return;
+      if (payableTotal === null) {
+        const subtotal = cartItems.reduce((sum, item) => sum + (Number(item.price) || 0) * (item.quantity || 1), 0);
+        const usePointsCb = document.getElementById('usePointsCheckbox');
+        const availPts = (activeMember && activeMember.points) ? Number(activeMember.points) : 0;
+        const ptsUsed = (usePointsCb && usePointsCb.checked) ? Math.min(availPts, Math.floor(subtotal)) : 0;
+        payableTotal = Math.max(0, subtotal - ptsUsed);
+      }
+      const earned = Math.round(payableTotal * 0.02);
+      const el = document.getElementById('memberPointsEarned');
+      if (el) el.textContent = `+${earned.toLocaleString('vi-VN')}`;
+    }
+
+    function setLoggedInMember(member) {
+      activeMember = member;
+      const cb = document.getElementById('usePointsCheckbox');
+      if (member) {
+        document.getElementById('memberUnregistered').style.display = 'none';
+        document.getElementById('memberRegistered').style.display = 'flex';
+        document.getElementById('memberPhoneDisplay').textContent = member.phone_number;
+        const pts = Number(member.points) || 0;
+        document.getElementById('memberPointsDisplay').textContent = pts.toLocaleString('vi-VN');
+        if (cb) {
+          cb.checked = false;
+          cb.disabled = (pts <= 0);
+        }
+        updateCartTotals();
+      } else {
+        document.getElementById('memberUnregistered').style.display = 'block';
+        document.getElementById('memberRegistered').style.display = 'none';
+        document.getElementById('memberPhoneInput').value = '';
+        if (cb) {
+          cb.checked = false;
+        }
+        updateCartTotals();
+      }
+    }
+
+    const usePointsCheckboxEl = document.getElementById('usePointsCheckbox');
+    if (usePointsCheckboxEl) {
+      usePointsCheckboxEl.addEventListener('change', () => {
+        updateCartTotals();
+      });
+    }
+
+    document.getElementById('logoutMemberBtn').onclick = () => {
+      setLoggedInMember(null);
+      showToast('Đã hủy liên kết thành viên');
+    };
+
+    document.getElementById('applyPhoneBtn').onclick = async () => {
+      const phoneInput = document.getElementById('memberPhoneInput');
+      const phone = phoneInput.value.trim();
+      const promptBox = document.getElementById('memberRegisterPrompt');
+      const promptPhoneDisplay = document.getElementById('promptPhoneDisplay');
+
+      if (!phone) { showToast('Vui lòng nhập số điện thoại'); return; }
+      if (promptBox) promptBox.style.display = 'none';
+
+      try {
+        const res = await fetch(`${API_BASE}/member/${encodeURIComponent(phone)}`);
+        if (res.ok) {
+          const m = await res.json();
+          setLoggedInMember(m);
+          showToast('✓ Áp dụng tích điểm thành công!');
+        } else {
+          // Chưa đăng ký -> Hiển thị hộp thoại mời tạo thẻ VIP ngay
+          if (promptBox && promptPhoneDisplay) {
+            promptPhoneDisplay.textContent = phone;
+            promptBox.style.display = 'block';
+            promptBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          } else {
+            showToast('❌ Số điện thoại chưa đăng ký thành viên!');
+          }
+        }
+      } catch (err) {
+        showToast('⚠️ Không thể kết nối tới server Flask!');
+      }
+    };
+
+    // Mở popup quét mặt khi khách bấm "Quét Khuôn Mặt Để Đăng Ký"
+    const openFaceScanForPhoneBtn = document.getElementById('openFaceScanForPhoneBtn');
+    if (openFaceScanForPhoneBtn) {
+      openFaceScanForPhoneBtn.onclick = () => {
+        const phone = document.getElementById('memberPhoneInput').value.trim();
+        const promptBox = document.getElementById('memberRegisterPrompt');
+        if (promptBox) promptBox.style.display = 'none';
+        triggerFaceScanModal(phone);
+      };
+    }
+    const cancelRegBtn = document.getElementById('cancelRegisterPhoneBtn');
+    if (cancelRegBtn) {
+      cancelRegBtn.onclick = () => {
+        const promptBox = document.getElementById('memberRegisterPrompt');
+        if (promptBox) promptBox.style.display = 'none';
+      };
+    }
+
+    let faceStream = null;
+    let scanCountdownInterval = null;
+    let tempFaceId = null;
+
+    const faceModal = document.getElementById('faceModal');
+    const faceStreamImg = document.getElementById('faceStreamImg');
+    const countdownOverlay = document.getElementById('countdownOverlay');
+    const faceStatus = document.getElementById('faceStatus');
+    const newMemberForm = document.getElementById('newMemberForm');
+    const newMemberPhone = document.getElementById('newMemberPhone');
+    const submitNewMemberBtn = document.getElementById('submitNewMemberBtn');
+    const cancelFaceBtn = document.getElementById('cancelFaceBtn');
+
+    // Gắn sự kiện mở bàn phím số ảo cho ô nhập SĐT thành viên mới
+    if (newMemberPhone) {
+      newMemberPhone.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openVirtualKeyboard(newMemberPhone, () => submitNewMemberBtn.click(), 'phone');
+      });
+      newMemberPhone.addEventListener('focus', () => {
+        openVirtualKeyboard(newMemberPhone, () => submitNewMemberBtn.click(), 'phone');
+      });
+    }
+
+    function triggerFaceScanModal(prefilledPhone = '') {
+      faceModal.style.display = 'flex';
+      newMemberForm.style.display = 'none';
+      const retryDiv = document.getElementById('faceRetryActions');
+      if (retryDiv) retryDiv.style.display = 'none';
+      const camWrap = document.getElementById('faceCameraWrap');
+      if (camWrap) {
+        camWrap.style.width = '290px';
+        camWrap.style.height = '250px';
+        camWrap.style.borderRadius = '18px';
+        camWrap.style.marginBottom = '12px';
+      }
+      document.querySelectorAll('.face-guide-corner, .face-scan-line').forEach(el => el.style.display = 'block');
+      faceStatus.textContent = 'Đang khởi động camera...';
+      faceStatus.style.color = 'var(--muted)';
+      newMemberPhone.value = prefilledPhone || '';
+      tempFaceId = null;
+      faceStreamImg.src = `${API_BASE}/camera/stream?t=${Date.now()}`;
+      startFaceCaptureSequence();
+    }
+
+    document.getElementById('faceScanBtn').onclick = () => {
+      const currentInput = document.getElementById('memberPhoneInput')?.value.trim() || '';
+      triggerFaceScanModal(currentInput);
+    };
+
+    function stopFaceCamera() {
+      faceStreamImg.src = BLANK_IMG;
+      if (scanCountdownInterval) clearInterval(scanCountdownInterval);
+      countdownOverlay.style.opacity = '0';
+    }
+
+    cancelFaceBtn.onclick = () => {
+      stopFaceCamera();
+      closeVirtualKeyboard();
+      faceModal.style.display = 'none';
+    };
+
+    const retryFaceBtn = document.getElementById('retryFaceBtn');
+    if (retryFaceBtn) {
+      retryFaceBtn.onclick = () => {
+        const retryDiv = document.getElementById('faceRetryActions');
+        if (retryDiv) retryDiv.style.display = 'none';
+        newMemberForm.style.display = 'none';
+        const camWrap = document.getElementById('faceCameraWrap');
+        if (camWrap) {
+          camWrap.style.width = '290px';
+          camWrap.style.height = '250px';
+          camWrap.style.borderRadius = '18px';
+          camWrap.style.marginBottom = '12px';
+        }
+        document.querySelectorAll('.face-guide-corner, .face-scan-line').forEach(el => el.style.display = 'block');
+        startFaceCaptureSequence();
+      };
+    }
+
+    const switchToPhoneRegBtn = document.getElementById('switchToPhoneRegBtn');
+    if (switchToPhoneRegBtn) {
+      switchToPhoneRegBtn.onclick = () => {
+        stopFaceCamera();
+        closeVirtualKeyboard();
+        faceModal.style.display = 'none';
+        switchToTab('tabMember');
+        const phoneInput = document.getElementById('memberPhoneInput');
+        if (phoneInput) {
+          phoneInput.focus();
+          openVirtualKeyboard(phoneInput, () => document.getElementById('applyPhoneBtn').click(), 'phone');
+        }
+      };
+    }
+
+    function startFaceCaptureSequence() {
+      if (scanCountdownInterval) clearInterval(scanCountdownInterval);
+      let count = 3;
+      countdownOverlay.textContent = count;
+      countdownOverlay.style.opacity = '1';
+      faceStatus.textContent = '👀 Vui lòng nhìn thẳng vào camera và giữ yên...';
+      faceStatus.style.color = '#2563EB';
+
+      scanCountdownInterval = setInterval(() => {
+        count--;
+        if (count > 0) {
+          countdownOverlay.textContent = count;
+        } else {
+          clearInterval(scanCountdownInterval);
+          countdownOverlay.style.opacity = '0';
+          captureFaceAndSend();
+        }
+      }, 1000);
+    }
+
+    async function captureFaceAndSend() {
+      faceStatus.textContent = 'Đang xử lý khuôn mặt bằng AI...';
+      faceStatus.style.color = 'var(--accent)';
+
+      try {
+        // Không gửi ảnh — server sẽ tự chụp khung hình hiện tại từ webcam cắm vào Pi
+        const scanCtrl = new AbortController();
+        const scanTimer = setTimeout(() => scanCtrl.abort(), 30000);
+        let res;
+        try {
+          res = await fetch(`${API_BASE}/member/scan`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({}),
+            signal: scanCtrl.signal
+          });
+        } finally {
+          clearTimeout(scanTimer);
+        }
+
+        if (!res.ok) {
+          let serverMsg = '';
+          try { serverMsg = (await res.json()).message || ''; } catch (e) { }
+          faceStatus.textContent = '❌ ' + (serverMsg || 'Lỗi nhận diện khuôn mặt. Hãy thử lại!');
+          faceStatus.style.color = 'var(--danger)';
+          const retryDiv = document.getElementById('faceRetryActions');
+          if (retryDiv) retryDiv.style.display = 'flex';
+          return;
+        }
+
+        const result = await res.json();
+        if (result.registered) {
+          setLoggedInMember({ phone_number: result.phone_number, points: result.points });
+          showToast('✓ Chào mừng quay lại! Nhận diện thành viên thành công');
+          stopFaceCamera();
+          closeVirtualKeyboard();
+          faceModal.style.display = 'none';
+        } else if (result.message === 'Không tìm thấy khuôn mặt trong hình ảnh' || result.message === 'Không trích xuất được đặc trưng khuôn mặt') {
+          faceStatus.textContent = '❌ Chưa nhận diện được. Vui lòng nhìn thẳng vào camera và thử lại!';
+          faceStatus.style.color = 'var(--danger)';
+          showToast('❌ Chưa thấy mặt — Vui lòng nhìn thẳng vào camera');
+          const retryDiv = document.getElementById('faceRetryActions');
+          if (retryDiv) retryDiv.style.display = 'flex';
+        } else if (result.hint) {
+          faceStatus.textContent = '⚠️ ' + result.hint;
+          faceStatus.style.color = 'var(--warn)';
+          showToast('⚠️ ' + result.hint);
+          const retryDiv = document.getElementById('faceRetryActions');
+          if (retryDiv) retryDiv.style.display = 'flex';
+        } else {
+          tempFaceId = result.temp_face_id;
+          const retryDiv = document.getElementById('faceRetryActions');
+          if (retryDiv) retryDiv.style.display = 'none';
+          const camWrap = document.getElementById('faceCameraWrap');
+          if (camWrap) {
+            camWrap.style.width = '120px';
+            camWrap.style.height = '95px';
+            camWrap.style.borderRadius = '12px';
+            camWrap.style.marginBottom = '8px';
+          }
+          document.querySelectorAll('.face-guide-corner, .face-scan-line').forEach(el => el.style.display = 'none');
+          faceStatus.textContent = newMemberPhone.value
+            ? '✓ Đã nhận diện khuôn mặt! Xác nhận số điện thoại để đăng ký thẻ mới:'
+            : '✓ Nhận diện hoàn tất! Vui lòng nhập số điện thoại:';
+          faceStatus.style.color = 'var(--accent)';
+          newMemberForm.style.display = 'block';
+
+          // Tự động mở bàn phím số ảo kiosk cho khách hàng nhập SĐT nếu chưa có sẵn
+          if (!newMemberPhone.value) {
+            setTimeout(() => {
+              newMemberPhone.focus();
+              openVirtualKeyboard(newMemberPhone, () => submitNewMemberBtn.click(), 'phone');
+            }, 150);
+          }
+        }
+      } catch (err) {
+        faceStatus.textContent = '⚠️ Không thể kết nối tới server Flask!';
+        faceStatus.style.color = 'var(--danger)';
+        const retryDiv = document.getElementById('faceRetryActions');
+        if (retryDiv) retryDiv.style.display = 'flex';
+      }
+    }
+
+    newMemberPhone.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        submitNewMemberBtn.click();
+      }
+    });
+
+    submitNewMemberBtn.onclick = async () => {
+      const phone = newMemberPhone.value.trim();
+      if (!phone) {
+        faceStatus.textContent = '⚠️ Vui lòng nhập số điện thoại!';
+        faceStatus.style.color = 'var(--warn)';
+        showToast('⚠️ Vui lòng nhập số điện thoại');
+        openVirtualKeyboard(newMemberPhone, () => submitNewMemberBtn.click(), 'phone');
+        return;
+      }
+      if (!tempFaceId) {
+        faceStatus.textContent = '⚠️ Khách mới bắt buộc phải quét khuôn mặt. Vui lòng bấm Quét Lại!';
+        faceStatus.style.color = 'var(--danger)';
+        showToast('⚠️ Khách mới bắt buộc phải quét khuôn mặt kết hợp với số điện thoại');
+        const retryDiv = document.getElementById('faceRetryActions');
+        if (retryDiv) retryDiv.style.display = 'flex';
+        return;
+      }
+
+      submitNewMemberBtn.disabled = true;
+      submitNewMemberBtn.textContent = '⏳ Đang lưu khuôn mặt & SĐT...';
+      faceStatus.textContent = '⏳ Đang lưu dữ liệu thành viên VIP...';
+      faceStatus.style.color = 'var(--accent)';
+
+      try {
+        const payload = { phone_number: phone, temp_face_id: tempFaceId };
+
+        const res = await fetch(`${API_BASE}/member/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          setLoggedInMember({ phone_number: data.phone_number, points: data.points || 0 });
+          showToast('🎉 Đăng ký thành viên VIP thành công!');
+          stopFaceCamera();
+          closeVirtualKeyboard();
+          faceModal.style.display = 'none';
+        } else {
+          const msg = data.message || 'Lỗi đăng ký thành viên';
+          faceStatus.textContent = '❌ ' + msg;
+          faceStatus.style.color = 'var(--danger)';
+          showToast('❌ ' + msg);
+        }
+      } catch (err) {
+        faceStatus.textContent = '⚠️ Lỗi kết nối đăng ký thành viên';
+        faceStatus.style.color = 'var(--danger)';
+        showToast('⚠️ Lỗi kết nối đăng ký thành viên');
+      } finally {
+        submitNewMemberBtn.disabled = false;
+        submitNewMemberBtn.textContent = 'Đăng ký & Tích điểm';
+      }
+    };
+  </script>
+</body>
+
+</html>
